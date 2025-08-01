@@ -2,26 +2,11 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Connexion / Inscription</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ft_transcendence</title>
 </head>
-<body>
-  <div class="container">
-    <h1>Bienvenue</h1>
-
-    <form id="authForm">
-      <input type="text" id="username" placeholder="Nom d'utilisateur" required />
-      <input type="password" id="password" placeholder="Mot de passe" required />
-      <div class="buttons">
-        <button type="button" id="registerBtn">Inscription</button>
-        <button type="button" id="loginBtn">Connexion</button>
-      </div>
-    </form>
-
-    <p id="response"></p>
-  </div>
-
-  <script src="front.js"></script>
+<body class="relative bg-black text-white">
+  <div id="app"></div>
+  <script type="module" src="/src/ts/main.ts"></script>
 </body>
 </html>

@@ -53,6 +53,13 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        synthPink: '#ff00cc',
+        synthCyan: '#00ffff',
+        },
+      boxShadow: {
+        neon: '0 0 10px #ff00cc, 0 0 20px #00ffff',
+        },
       keyframes: {
         float: {
           '0%, 100%': { transform: 'translateY(0)' },

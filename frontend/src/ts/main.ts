@@ -1,5 +1,7 @@
 import "../style.css";
 import "../output.css";
+import { laodDashboard } from "./dashboard";
+
 
 const routes: { [key: string]: string} = {
     home: 'home.html',
@@ -22,6 +24,10 @@ async function loadPage(hash: string)
 
     const app = document.getElementById('app');
     if (app) app.innerHTML = pageHtml;
+
+    if (page === 'dashboard') {
+      laodDashboard();
+    }
 }
 
 

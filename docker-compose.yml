@@ -36,9 +36,15 @@ services:
     depends_on:
       - backend
     ports:
-      - "8080:80"
+      - "5173:5173"
     networks:
       - ftnet
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
 
 volumes:
   pgdata:

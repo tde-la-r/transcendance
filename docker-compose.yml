@@ -1,33 +1,16 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: app
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - ftnet
 
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    depends_on:
-      - db
-    environment:
-      - DB_HOST=db
-      - DB_NAME=app
-      - DB_USER=app
-      - DB_PASS=app
     ports:
-      - "8000:8000"
-    networks:
-      - ftnet
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    restart: unless-stopped
 
   frontend:
     build:

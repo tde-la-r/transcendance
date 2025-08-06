@@ -1,15 +1,13 @@
-FROM php:8.2-cli
+FROM node:20-slim
 
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y libpq-dev && \
-    docker-php-ext-install pdo pdo_pgsql
+COPY package*.json ./
+
+RUN npm install
 
 COPY . .
 
-# RUN docker-php-ext-install pdo_pgsql
+EXPOSE 3000
 
-EXPOSE 8000
-
-CMD ["php", "-S", "0.0.0.0:8000", "-t", "."]
+CMD ["node", "index.js"]

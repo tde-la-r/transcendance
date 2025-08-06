@@ -1,23 +1,51 @@
 <body class="relative min-h-screen bg-gradient-to-b from-[#ff0080] via-[#9900ff] to-[#330033] text-white overflow-hidden">
 
   <!-- FOND SYNTHWAVE FIXE PAR IMG -->
-  <div class="fixed inset-0 z-[-10] pointer-events-none overflow-hidden">
+  <div class="fixed inset-0 z-[-10] pointer-events-none overflow-hidden opacity-70">
     <!-- Soleil -->
-    <img src="/assets/test2.png"
+    <img src="/assets/test3.gif"
          alt="Soleil synthwave"
          class="absolute bottom-[0px] left-1/2 -translate-x-1/2 w-[1600px] h-[900px] z-0 opacity-90" />
   </div>
 
   <!-- NAVBAR -->
-  <header class="flex flex-col items-center gap-4 bg-gradient-to-r from-[#581c87] via-[#7c2d12] to-black text-pink-100 p-6 shadow-md z-10 relative">
-    <h1 class="text-4xl font-extrabold bg-gradient-to-r from-[#ff3500] via-[#ff1493] to-[#4b0082] bg-clip-text text-transparent tracking-wider">
-      ft_transcendence
-    </h1>
-    <nav class="flex justify-center space-x-12 text-pink-200 text-lg font-medium">
-      <a href="#home" class="hover:text-white transition">Accueil</a>
-      <a href="#login" class="hover:text-white transition">Connexion</a>
-      <a href="#dashboard" class="hover:text-white transition">Dashboard</a>
-    </nav>
+  <header class="flex justify-between items-center bg-black/20 backdrop-blur-sm border-b border-pink-500/20 text-pink-100 px-6 py-4 shadow-[0_0_15px_#00ffd5] z-10 relative rounded-b-xl">
+  
+    <!-- Logo à gauche -->
+    <div class="animate-pulse-neon">
+      <img src="/assets/42_logo.svg" alt="Logo école" class="h-14 w-auto" />
+    </div>
+
+    <!-- Centre : titre + liens -->
+    <div class="flex flex-col items-center space-y-2">
+      <h1 class="text-4xl font-extrabold bg-gradient-to-r from-[#00ffd5] via-[#ff00c8] to-[#7f00ff] bg-clip-text text-transparent tracking-wider drop-shadow-lg">
+        ft_transcendence
+      </h1>
+      <nav class="flex justify-center space-x-12 text-pink-200 text-lg font-medium">
+        <a href="#home" class="hover:text-white transition">Accueil</a>
+        <a href="#login" class="hover:text-white transition">Jouer</a>
+        <a href="#dashboard" class="hover:text-white transition">Dashboard</a>
+      </nav>
+    </div>
+
+    <!-- Boutons à droite -->
+    <div class="space-y-2 flex flex-col items-end">
+      <a href="#login">
+        <div class="w-10 h-10 rounded-full bg-pink-600 hover:bg-pink-700 flex items-center justify-center text-white text-xl shadow-lg">
+          <img src="/assets/login.png" alt="logo login" class="h-6 w-6" />
+        </div>
+      </a>
+      <div class="group relative">
+        <button id="lang-btn" class="w-10 h-10 rounded-full bg-purple-600 hover:bg-purple-700 flex items-center justify-center shadow-lg text-white text-xl">
+          🌐
+        </button>
+        <div id="lang-menu" class="hidden absolute right-0 mt-2 flex-col bg-black/80 rounded-xl shadow-md w-24 text-center text-white overflow-hidden z-50">
+          <button class="hover:bg-pink-600 py-2 w-full transition-all" data-lang="fr">🇫🇷 FR</button>
+          <button class="hover:bg-pink-600 py-2 w-full transition-all" data-lang="en">🇬🇧 EN</button>
+          <button class="hover:bg-pink-600 py-2 w-full transition-all" data-lang="es">🇪🇸 ES</button>
+        </div>
+      </div>
+    </div>
   </header>
 
   <!-- CONTENU -->

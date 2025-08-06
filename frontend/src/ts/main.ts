@@ -38,5 +38,29 @@ window.addEventListener('hashchange', () => {
 
 window.addEventListener('DOMContentLoaded', async () => {
   await loadLayout();
+  setupLangDropdown();
   await loadPage('home');
 });
+
+function setupLangDropdown() {
+  const langBtn = document.getElementById("lang-btn");
+  const langMenu = document.getElementById("lang-menu");
+
+  if (langBtn && langMenu) {
+    langBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      langMenu.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", () => {
+      langMenu.classList.add("hidden");
+    });
+
+    langMenu.querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const selectedLang = (e.target as HTMLElement).dataset.lang;
+        console.log("Langue sélectionnée :", selectedLang);
+      });
+    });
+  }
+}

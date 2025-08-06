@@ -61,6 +61,10 @@ module.exports = {
         neon: '0 0 10px #ff00cc, 0 0 20px #00ffff',
         },
       keyframes: {
+        'pulse-neon' : {
+          '0%, 100%': { opacity : '1', filter: 'drop-shadow(0 0 8px #ff00c8)' },
+          '50%': {opacity: '0.7', filter: 'drop-shadow(0 0 15px #00ffd5)' },    
+        },
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-10px)' },
@@ -68,6 +72,7 @@ module.exports = {
       },
       animation: {
         'slow-float': 'float 12s ease-in-out infinite',
+        'pulse-neon': 'pulse-neon 2s ease-in-out infinite',
       },
     },
   },

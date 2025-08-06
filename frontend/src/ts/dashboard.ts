@@ -91,7 +91,7 @@ export function laodDashboard(): void {
 
         `,
         ranking: `
-            <div class="bg-black/30 p-6 rounded-xl shadow-neon w-full max-w-3xl mx-auto space-y-4">
+            <div class="bg-black/30 p-6 rounded-xl shadow-neon w-full mx-auto space-y-4">
                 <h3 class="text=2xl font-bold text-pink-300 mb-4">🏆 Classement</h3>
 
                 <div class="space-y-3">

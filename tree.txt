@@ -3583,20 +3583,33 @@
 │   ├── postcss.config.js
 │   ├── public
 │   │   └── assets
-│   │       ├── bar-chart.svg
-│   │       ├── broken-heart.svg
-│   │       ├── controller.svg
+│   │       ├── 42_logo.svg
+│   │       ├── dashboard
+│   │       │   ├── bar-chart.svg
+│   │       │   ├── broken-heart.svg
+│   │       │   ├── bronze_medal.png
+│   │       │   ├── controller.svg
+│   │       │   ├── flamme.png
+│   │       │   ├── gold_medal.png
+│   │       │   ├── history.png
+│   │       │   ├── medal.png
+│   │       │   ├── silver_medal.png
+│   │       │   └── trophy.svg
 │   │       ├── grid.svg
+│   │       ├── login.png
 │   │       ├── mountains.svg
 │   │       ├── sun.svg
 │   │       ├── synthwave_background_vector.svg
 │   │       ├── test1.png
+│   │       ├── test2.gif
 │   │       ├── test2.png
+│   │       ├── test3.gif
 │   │       ├── test3.svg
-│   │       ├── test.png
-│   │       ├── trophy.svg
-│   │       ├── vecteezy_heart-icons-red-flat-types-isolation-on-white-background_35339197.svg
-│   │       └── vecteezy_joystick-vector-icon_21453363.svg
+│   │       ├── test3.webm
+│   │       ├── testbg.gif
+│   │       ├── test.gif
+│   │       ├── test.mp4
+│   │       └── test.png
 │   ├── save
 │   ├── src
 │   │   ├── output.css
@@ -3616,4 +3629,4 @@
 │   └── vite-env.d.ts
 └── tree.txt
 
-440 directories, 3177 files
+441 directories, 3189 files

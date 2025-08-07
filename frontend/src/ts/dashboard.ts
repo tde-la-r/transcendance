@@ -38,11 +38,8 @@ export function laodDashboard(): void {
             <div>
         `,
         history: `
-            <div class="bg-black/30 p-6 rounded-xl shadow-neon w-full mx-auto space-y-6 text-left">
-                <h3 class="text-2xl font-bold text-pink-300 flex items-center gap-2">
-                    <img src="assets/dashboard/history.png" alt="Historique" class="w-8 h-8" />
-                    <span>Historique des matchs</span>
-                </h3>
+            <div class="bg-black/30 p-6 rounded-xl shadow-neon w-full mx-auto space-y-4">
+                <h3 class="text-2xl font-bold text-pink-300 mb-4">📝 Historique des parties</h3>
 
                 <div class="space-y-4">
                 <!-- match 1 -->
@@ -92,84 +89,119 @@ export function laodDashboard(): void {
         `,
         ranking: `
             <div class="bg-black/30 p-6 rounded-xl shadow-neon w-full mx-auto space-y-4">
-                <h3 class="text=2xl font-bold text-pink-300 mb-4">🏆 Classement</h3>
+                <h3 class="text-2xl font-bold text-pink-300 mb-4">🏆 Classement</h3>
 
                 <div class="space-y-3">
                     <!-- rank 1 -->
-                    <div class="bg-[#1a0020]/80 p-4 rounded-xl flex justify-between items-center shadow-inner">
-                        <div class="flex items-center gap-4">
-                            <img src="assets/dashboard/gold_medal.png" alt="Gold" class="w-8 h-8" />
-                            <div>
-                                <p class="text-white font-bold">SynthMaster</p>
-                                <p class="text-sm text-pink-400">145W - 23L</p>
+                    <div class="flex items-center justify-between bg-[#1a1a2e]/70 rounded-xl px-6 py-4 shadow-lg">
+                        <!-- Gauche : Rang + Pseudo + Win/Loss -->
+                        <div class="flex items-center space-x-4">
+                            <!-- Rang / Médaille -->
+                            <div class="text-2xl w-8 text-center">
+                            🥇
+                            </div>
+                            <!-- Nom + Stat -->
+                            <div class="flex flex-col">
+                            <span class="font-bold text-pink-100 text-lg">SynthMaster</span>
+                            <span class="text-sm text-left text-pink-400">145W - 23L</span>
                             </div>
                         </div>
+
+                        <!-- Droite : Score + WR -->
                         <div class="text-right">
-                            <p class="text-yellow-400 font-bold text-xl">2156 pts</p>
-                            <p class="text-sm text-yellow-300">86% WR</p>
+                            <div class="text-yellow-400 font-extrabold text-lg">2156 pts</div>
+                            <div class="text-pink-300 text-sm">86% WR</div>
                         </div>
-                    </div>
+                        </div>
 
                     <!-- rank 2 -->
-                    <div class="bg-[#1a0020]/80 p-4 rounded-xl flex justify-between items-center shadow-inner">
-                        <div class="flex items-center gap-4">
-                            <img src="assets/dashboard/silver_medal.png" alt="Gold" class="w-6 h-8" />
-                            <div>
-                                <p class="text-white font-bold">CyberAlice</p>
-                                <p class="text-sm text-pink-400">132W - 45L</p>
+                    <div class="flex items-center justify-between bg-[#1a1a2e]/70 rounded-xl px-6 py-4 shadow-lg">
+                        <!-- Gauche : Rang + Pseudo + Win/Loss -->
+                        <div class="flex items-center space-x-4">
+                            <!-- Rang / Médaille -->
+                            <div class="text-2xl w-8 text-center">
+                            🥈
+                            </div>
+                            <!-- Nom + Stat -->
+                            <div class="flex flex-col">
+                            <span class="font-bold text-pink-100 text-lg">CyberBob</span>
+                            <span class="text-sm text-left text-pink-400">115W - 43L</span>
                             </div>
                         </div>
+
+                        <!-- Droite : Score + WR -->
                         <div class="text-right">
-                            <p class="text-yellow-400 font-bold text-xl">1987 pts</p>
-                            <p class="text-sm text-yellow-300">75% WR</p>
+                            <div class="text-yellow-400 font-extrabold text-lg">1856 pts</div>
+                            <div class="text-pink-300 text-sm">70% WR</div>
                         </div>
-                    </div>
+                        </div>
 
                     <!-- rank 3 -->
-                    <div class="bg-[#1a0020]/80 p-4 rounded-xl flex justify-between items-center shadow-inner">
-                        <div class="flex items-center gap-4">
-                            <img src="assets/dashboard/bronze_medal.png" alt="Gold" class="w-6 h-8" />
-                            <div>
-                                <p class="text-white font-bold">SynthMaster</p>
-                                <p class="text-sm text-pink-400">98W - 32L</p>
+                    <div class="flex items-center justify-between bg-[#1a1a2e]/70 rounded-xl px-6 py-4 shadow-lg">
+                        <!-- Gauche : Rang + Pseudo + Win/Loss -->
+                        <div class="flex items-center space-x-4">
+                            <!-- Rang / Médaille -->
+                            <div class="text-2xl w-8 text-center">
+                            🥉
+                            </div>
+                            <!-- Nom + Stat -->
+                            <div class="flex flex-col">
+                            <span class="font-bold text-pink-100 text-lg">CyberAlice</span>
+                            <span class="text-sm text-left text-pink-400">105W - 83L</span>
                             </div>
                         </div>
+
+                        <!-- Droite : Score + WR -->
                         <div class="text-right">
-                            <p class="text-yellow-400 font-bold text-xl">1654 pts</p>
-                            <p class="text-sm text-yellow-300">75% WR</p>
+                            <div class="text-yellow-400 font-extrabold text-lg">1406 pts</div>
+                            <div class="text-pink-300 text-sm">51% WR</div>
                         </div>
-                    </div>
+                        </div>
 
                     <!-- rank 4-->
-                    <div class="bg-pink-900/60 border border-yellow-400 p-4 rounded-xl flex justify-between items-center shadow-inner">
-                        <div class="flex items-center gap-4">
-                        <!-- Simule l’espace d'une image de médaille -->
-                            <div class="w-8 h-8 flex items-center justify-center">
-                                <span class="text-white font-bold text-sm">#4</span>
+                    <div class="flex items-center justify-between bg-[#1a1a2e]/70 rounded-xl px-6 py-4 shadow-lg">
+                        <!-- Gauche : Rang + Pseudo + Win/Loss -->
+                        <div class="flex items-center space-x-4">
+                            <!-- Rang / Médaille -->
+                            <div class="text-2xl w-8 text-center">
+                            #4
                             </div>
-                            <div>
-                                <p class="text-yellow-400 font-bold">Vous</p>
-                                <p class="text-sm text-pink-400">28W - 14L</p>
+                            <!-- Nom + Stat -->
+                            <div class="flex flex-col">
+                            <span class="font-bold text-pink-100 text-lg">CyberEric</span>
+                            <span class="text-sm text-left text-pink-400">100W - 83L</span>
                             </div>
                         </div>
+
+                        <!-- Droite : Score + WR -->
                         <div class="text-right">
-                            <p class="text-yellow-400 font-bold text-xl">1337 pts</p>
-                            <p class="text-sm text-yellow-300">67% WR</p>
+                            <div class="text-yellow-400 font-extrabold text-lg">1350 pts</div>
+                            <div class="text-pink-300 text-sm">50% WR</div>
                         </div>
-                    </div>
-    
+                        </div>
+
                     <!-- rank 5-->
-                    <div class="bg-[#1a0020]/80 p-4 rounded-xl flex justify-between items-center shadow-inner">
-                        <div class="flex items-center gap-4">
-                            <span class="text-white font-bold text-xl">#5</span>
-                            <div>
-                                <p class="text-white font-bold">CyberBob</p>
-                                <p class="text-sm text-pink-400">45W - 67L</p>
+                    <div class="flex items-center justify-between bg-[#1a1a2e]/70 rounded-xl px-6 py-4 shadow-lg">
+                        <!-- Gauche : Rang + Pseudo + Win/Loss -->
+                        <div class="flex items-center space-x-4">
+                            <!-- Rang / Médaille -->
+                            <div class="text-2xl w-8 text-center">
+                            #5
+                            </div>
+                            <!-- Nom + Stat -->
+                            <div class="flex flex-col">
+                            <span class="font-bold text-pink-100 text-lg">CyberTeddy</span>
+                            <span class="text-sm text-left text-pink-400">98W - 83L</span>
                             </div>
                         </div>
+
+                        <!-- Droite : Score + WR -->
                         <div class="text-right">
-                            <p class="text-yellow-400 font-bold text-xl">892 pts</p>
-                            <p class="text-sm text-yellow-300">40% WR</p>
+                            <div class="text-yellow-400 font-extrabold text-lg">1300 pts</div>
+                            <div class="text-pink-300 text-sm">51% WR</div>
+                        </div>
+                        </div>
+
                         </div>
                     </div>
                 </div>

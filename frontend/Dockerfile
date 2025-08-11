@@ -28,24 +28,16 @@
 
 #CMD ["nginx", "-g", "daemon off;"]
 # Étape de build
-FROM node:18-alpine AS builder
+FROM node:20-alpine
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY . .
-RUN npm run build
 
-# Étape de développement (serveur Vite)
-FROM node:18-alpine
-
-WORKDIR /app
-COPY --from=builder /app /app
-
-# Réinstalle vite car il est en devDependency
-RUN npm install
+ENV NODE_ENV=development
 
 EXPOSE 5173
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

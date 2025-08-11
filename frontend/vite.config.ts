@@ -1,14 +1,19 @@
-import { defineConfig } from 'vite'
-import postcss from './postcss.config.js'
+import { defineConfig } from 'vite';
 
 export default defineConfig({
-  root: '.',
-  base: './',
-  build: {
-    outDir: 'dist',
-    emptyOutDir: true
-  },
-  css: {
-    postcss: './postcss.config.js',
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://backend:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/ws': {
+        target: 'ws://backend:3000',
+        ws: true,
+      }
+    }
   }
-})
+});

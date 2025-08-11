@@ -4,7 +4,7 @@
   <div class="fixed inset-0 z-[-10] pointer-events-none overflow-hidden opacity-100">
     <!-- Soleil -->
     <video autoplay muted loop playsinline
-    class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1600px] h-[900px] z-0 opacity-90 object-cover pointer-events-none">
+    class="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-full z-0 opacity-90 object-cover pointer-events-none">
       <source src="/assets/test3.webm" type="video/webm" />
         Your browser does not support the video tag.
     </video>
@@ -32,7 +32,7 @@
 
     <!-- Boutons à droite -->
     <div class="space-y-2 flex flex-col items-end">
-      <a href="#login">
+      <a id="authBtn" href="#login">
         <div class="w-10 h-10 rounded-full bg-pink-600 hover:bg-pink-700 flex items-center justify-center text-white text-xl shadow-lg">
           <img src="/assets/login.png" alt="logo login" class="h-6 w-6" />
         </div>

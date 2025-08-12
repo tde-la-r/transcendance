@@ -222,3 +222,15 @@ export function laodDashboard(): void {
 
     show("stats");
 }
+
+function currentUser(): { username?: string } | null {
+  try { return JSON.parse(localStorage.getItem('auth') || 'null'); }
+  catch { return null; }
+}
+
+export function paintDashboardUsername() {
+  const el = document.getElementById('dashUsername');
+  if (!el) return;
+  const user = currentUser();
+  el.textContent = user?.username ?? 'Invité';
+}

@@ -1,4 +1,9 @@
 export function mountLoginHandlers() {
+  if (localStorage.getItem('auth')) {
+    // déjà connecté -> pas de formulaire
+    location.replace('#dashboard');
+    return;
+  }
   const form = document.getElementById('loginForm') as HTMLFormElement | null;
   if (!form) return;
   const msg = document.getElementById('loginMsg') as HTMLParagraphElement | null;
@@ -33,6 +38,8 @@ export function mountLoginHandlers() {
         return;
       }
       localStorage.setItem('auth', JSON.stringify(body.user));
+      // NOUVEAU signale au layout que l’état a changé
+      window.dispatchEvent(new CustomEvent('auth:changed'));
       msg && (msg.textContent = 'Connexion réussie !');
       setTimeout(() => { location.hash = '#dashboard'; }, 600);
     } catch (err: any) {

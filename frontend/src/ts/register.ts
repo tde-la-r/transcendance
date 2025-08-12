@@ -1,9 +1,12 @@
 export function mountRegisterHandlers() {
   const form = document.getElementById('registerForm') as HTMLFormElement | null;
+  const msg = document.getElementById('registerMsg') as HTMLParagraphElement | null;
   if (!form) return;
 
-  const msg = document.getElementById('registerMsg') as HTMLParagraphElement | null;
+  if (form.dataset.bound === '1') return;
+  form.dataset.bound = '1';
   const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+  const setMsg = (t: string) => {if (msg) msg.textContent = t; };
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -17,7 +20,7 @@ export function mountRegisterHandlers() {
     };
 
     if (!payload.email || !payload.username || !payload.password) {
-      msg && (msg.textContent = 'Tous les champs sont requis.');
+      setMsg('Tous les champs sont requis.');
       submitBtn && (submitBtn.disabled = false);
       return;
     }
@@ -31,16 +34,19 @@ export function mountRegisterHandlers() {
 
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        msg && (msg.textContent = body.error || `Erreur ${res.status}`);
-        submitBtn && (submitBtn.disabled = false);
+        const msg = body?.error === 'Weak password' && Array.isArray(body?.details)
+          ? body.details.join(' ')
+          : (body?.error || `Erreur ${res.status}`);
+        setMsg(msg);
         return;
-      }
+    }
 
-      msg && (msg.textContent = 'Compte créé ! Redirection…');
+      setMsg('Compte créé ! Redirection…');
       setTimeout(() => { location.hash = '#login'; }, 700);
     } catch (err: any) {
-      msg && (msg.textContent = err?.message || 'Erreur réseau');
+      setMsg(err?.message || 'Erreur réseau');
+    } finally {
       submitBtn && (submitBtn.disabled = false);
     }
-  }, { once: true });
+  });
 }

@@ -1,6 +1,6 @@
 import "../style.css";
 import "../output.css";
-import { laodDashboard } from "./dashboard";
+// import { laodDashboard } from "./dashboard";
 import { mountRegisterHandlers } from "./register";
 import { mountLoginHandlers } from "./login";
 import { laodDashboard, paintDashboardUsername } from './dashboard';

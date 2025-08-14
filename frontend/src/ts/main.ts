@@ -278,6 +278,7 @@ import "../output.css";
 import { mountRegisterHandlers } from "./register";
 import { mountLoginHandlers } from "./login";
 import { mountDashboard, laodDashboard, paintDashboardUsername } from "./dashboard";
+import { mountProfileHandlers } from "./profile";
 
 const protectedPages = new Set(['dashboard', 'play']);
 const authOnlyForbidden = new Set(['login', 'register']);
@@ -341,11 +342,11 @@ function setupAuthMenu() {
       }
     };
 
-    if (settings) {
-      settings.onclick = () => {
+    /*if (profils) {
+      profils.onclick = () => {
         closeAuthDropdown();
-        location.hash = '#settings';
-      };
+        location.hash = '#profils';
+      };*/
     }
 
     if (logout) {
@@ -411,6 +412,11 @@ export async function loadPage() {
     localStorage.removeItem('auth');
     setupAuthMenu();
     location.hash = '#login';
+    return;
+  }
+
+  if (page === 'profils') {
+    mountProfileHandlers();
     return;
   }
 

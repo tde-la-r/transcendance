@@ -22,7 +22,7 @@ function dbRun(sql, params = []) {
 function validatePassword(password, { username, email }) {
   const errors = [];
   if (typeof password !== 'string') errors.push('Password must be a string.');
-  if (password.length < 10) errors.push('Password must be at least 10 characters.');
+  if (password.length < 8) errors.push('Password must be at least 10 characters.');
   if (password.length > 72) errors.push('Password must be at most 72 characters.'); // bcrypt limit
   if (!/[a-z]/.test(password)) errors.push('Password must include a lowercase letter.');
   if (!/[A-Z]/.test(password)) errors.push('Password must include an uppercase letter.');

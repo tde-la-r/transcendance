@@ -314,7 +314,7 @@ function closeAuthDropdown() {
 function setupAuthMenu() {
   const btn = document.getElementById('authBtn') as HTMLAnchorElement | null;
   const menu = document.getElementById('authDropdown') as HTMLDivElement | null;
-  const settings = document.getElementById('settingsLink') as HTMLAnchorElement | null;
+  const profils = document.getElementById('profilsLink') as HTMLAnchorElement | null;
   const logout = document.getElementById('logoutBtn') as HTMLButtonElement | null;
   if (!btn || !menu) return;
 
@@ -342,11 +342,11 @@ function setupAuthMenu() {
       }
     };
 
-    /*if (profils) {
+    if (profils) {
       profils.onclick = () => {
         closeAuthDropdown();
         location.hash = '#profils';
-      };*/
+      };
     }
 
     if (logout) {
@@ -395,8 +395,9 @@ function renderAuthBadge() {
 }
 
 // ---- Router ----
-export async function loadPage() {
+/*export async function loadPage() {
   const page = getPageFromHash();
+  const file = page === 'profils' ? 'profile.html' : `${page}.html`;
 
   // Guards
   if (protectedPages.has(page) && !isAuthed()) {
@@ -415,11 +416,6 @@ export async function loadPage() {
     return;
   }
 
-  if (page === 'profils') {
-    mountProfileHandlers();
-    return;
-  }
-
   // Fetch & inject
   const pageRes = await fetch(`./src/pages/${page}.html`);
   const pageHtml = await pageRes.text();
@@ -433,8 +429,76 @@ export async function loadPage() {
     laodDashboard?.();
     paintDashboardUsername();
   }
+  if (page === 'profils') {
+    mountProfileHandlers();
+  }
+
   if (page === 'register') mountRegisterHandlers();
   if (page === 'login')    mountLoginHandlers();
+
+  setupAuthMenu();
+}*/
+
+//protected si besoins d'etre connecter
+//mount fonction a appeler apres injection
+
+const PAGE_MAP: Record<string, { file: string; mount?: () => void; protected?: boolean }> = {
+  home:       {file: 'home.html' },
+  login:      {file: 'login.html', mount: mountLoginHandlers, protected: false},
+  register:   {file: 'register.html', mount: mountRegisterHandlers, protected: false },
+  dashboard:  {file: 'dashboard.html', mount: () => { mountDashboard(); laodDashboard?.(); paintDashboardUsername(); }, protected: true},
+  //play:       {file: 'play.html', mount: mountPlayHandlers, protected: true},
+  profils:    {file: 'profile.html', mount: mountProfileHandlers, protected: true},
+};
+
+function normalizePage(rawHash: string): string {
+  const h = (rawHash || '').trim().toLowerCase();
+  if (!h || h === '#' || h === '#home') return 'home';
+  const p = h.startsWith('#') ? h.slice(1) : h;
+  return p;
+}
+
+export async function loadPage() {
+  const page = normalizePage(location.hash);
+  
+  if (page === 'logout') {
+    localStorage.removeItem('auth');
+    setupAuthMenu();
+    location.hash = '#login';
+    return;
+  }
+
+  const def = PAGE_MAP[page] ?? PAGE_MAP.home;
+
+  if (def.protected && !isAuthed()) {
+    location.replace('#login');
+    return;
+  }
+
+  let pageHtml = '';
+  try {
+    const res = await fetch(`/src/pages/${def.file}`, { cache: 'no-cache'});
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} on ${def.file}`);
+    }
+    pageHtml = await res.text();
+  } catch(err) {
+    console.error('[loadPage] fetch error:', err);
+    pageHtml = `
+      <section class="max-w-xl mx-auto mt-24 bg-black/60 text-pink-100 rounded-xl p-6 border border-pink-500/30">
+        <h2 class="text-2xl mb-2">Oups</h2>
+        <p>Impossible de charger <code>${def.file}</code>.</p>
+      </section>`;
+  }
+
+  const app = document.getElementById('app');
+  if (app) app.innerHTML = pageHtml;
+
+  try {
+    def.mount?.();
+  } catch (err) {
+    console.error('[loadPage] mount error on', page, err);
+  }
 
   setupAuthMenu();
 }

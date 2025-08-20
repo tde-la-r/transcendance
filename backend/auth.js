@@ -40,6 +40,18 @@ function validatePassword(password, { username, email }) {
   return { ok: errors.length === 0, errors };
 }
 
+function validateUsername(username) {
+  const errors = [];
+  const u = String(username || '').trim();
+
+  if (!u) errors.push('Username is required.');
+  // 3–20 caractères, alphanum + . _ - (mêmes règles que profil)
+  if (!/^[a-zA-Z0-9._-]{3,20}$/.test(u)) {
+    errors.push('Username must be 3–20 chars, letters/numbers/._- only.');
+  }
+  return { ok: errors.length === 0, value: u, errors };
+}
+
 async function authRoute(fastify, options) {
   fastify.post('/register', async (request, reply) => {
     let { username, email, password } = request.body || {};
@@ -49,6 +61,12 @@ async function authRoute(fastify, options) {
     if (!email || !username || !password) {
       return reply.code(400).send({ error: 'Email, username and password are required.' });
     }
+
+    const un = validateUsername(username);
+    if (!un.ok) {
+      return reply.code(400).send({ error: 'Invalid username', details: un.errors });
+    }
+    username = un.value;
 
     const policy = validatePassword(password, { username, email });
     if (!policy.ok)

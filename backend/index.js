@@ -2,6 +2,7 @@ const fastify = require('fastify')({ logger: true });
 
 const authRoutes = require('./auth');
 const cors = require('@fastify/cors');
+const usersRoutes = require('./users');
 // --- STATS API ULTRA SIMPLE ---
 const db = require('./db');
 
@@ -32,6 +33,8 @@ fastify.register(cors, {
 });
 
 fastify.register(authRoutes, {prefix: '/api/auth'});
+
+fastify.register(usersRoutes, { prefix: '/api/users' });
 
 // demarrage du serveur sur le port 3000
 const start = async () => {

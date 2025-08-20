@@ -52,6 +52,23 @@ function validateUsername(username) {
   return { ok: errors.length === 0, value: u, errors };
 }
 
+function validateEmail(email) {
+  const errors = [];
+  const e = String(email || '').trim().toLowerCase();
+
+  if (!e) {
+    errors.push('Email is required.');
+  } else {
+    // regex simple mais robuste : "quelquechose@domaine.tld"
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!re.test(e)) {
+      errors.push('Invalid email format.');
+    }
+  }
+
+  return { ok: errors.length === 0, value: e, errors };
+}
+
 async function authRoute(fastify, options) {
   fastify.post('/register', async (request, reply) => {
     let { username, email, password } = request.body || {};
@@ -68,6 +85,11 @@ async function authRoute(fastify, options) {
     }
     username = un.value;
 
+    const eres = validateEmail(email);
+    if (!eres.ok)
+      return reply.code(400).send({ error: 'Invalid email', details: eres.errors });
+    email = eres.value;
+
     const policy = validatePassword(password, { username, email });
     if (!policy.ok)
       return reply.code(400).send({ error: 'Weak password', details: policy.errors });
@@ -83,7 +105,8 @@ async function authRoute(fastify, options) {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      await dbRun('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword]);
+      const alias = username;
+      await dbRun('INSERT INTO users (username, email, password, alias) VALUES (?, ?, ?, ?)', [username, email, hashedPassword, alias]);
 
       return reply.code(201).send({ ok: true,  message: 'User registered successfully!' });
     } catch (err) {

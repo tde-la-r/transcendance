@@ -190,16 +190,86 @@ export function mountProfileHandlers() {
     // maj user
     const updated = {
       ...user,
-      username: usernameIn?.value?.trim() || user.username,
-      alias:    aliasIn?.value?.trim() || user.alias,
-      avatar_url: newAvatar || '',
+      username: (usernameIn?.value || '').trim(),
+      alias:    (aliasIn?.value || '').trim() || null,
+      avatar_url: newAvatar || null,
     };
+    setMsg(msg, "Sauvegarde...");
 
-    localStorage.setItem('auth', JSON.stringify(updated));
-    setMsg(msg, "✅ Sauvegardé !", true);
+    //appel API
+    try {
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', //utile pour cookie
+        body: JSON.stringify(updated),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      //gestion erreur
+
+      if (!res.ok) {
+        markError(usernameIn, false);
+        markError(aliasIn, false);
+
+        //conflits (username/alias pris)
+        if (res.status === 409) {
+          const err = (data?.error || '').toLowerCase();
+          if (err.includes('username')) {
+            markError(usernameIn, true);
+            setMsg(msg, 'Ce nom d’utilisateur est déjà pris.', false);
+            usernameIn?.focus();
+            return;
+          }
+          if (err.includes('alias')) {
+            markError(aliasIn, true);
+            setMsg(msg, 'Cet alias est déjà pris.', false);
+            aliasIn?.focus();
+            return;
+          }
+        }
+
+        //erreur de validation
+        if (res.status === 400 && Array.isArray(data?.details) && data.details.length) {
+          setMsg(msg, data.details[0], false);
+          //surligner
+          if (String(data.details[0]).toLowerCase().includes('username')) {
+            markError(usernameIn, true);
+            usernameIn?.focus();
+          }
+          if (String(data.details[0]).toLowerCase().includes('alias')) {
+            markError(aliasIn, true);
+            aliasIn?.focus();
+          }
+          return;
+        }
+
+        setMsg(msg, data?.error || 'Erreur lors de la mise à jour.', false);
+        return;
+      }
+
+    //succes on recupere l'utilisateur
+    const updateUser = data?.user || {};
+    if (usernameIn) usernameIn.value = updateUser.username ?? updated.username;
+    if (aliasIn) aliasIn.value = updateUser.alias ?? (updated.alias || '');
+    if (avatarUrlIn) avatarUrlIn.value = updateUser.avatar_url ?? (updated.avatar_url || '');
+    const avatarPreview = document.getElementById('profileAvatarPreview') as HTMLImageElement | null;
+    if (avatarPreview) avatarPreview.src = updateUser.avatar_url || AVATAR.FALLBACK;
+
+    //maj du localstorage
+    const next = { ...user, ...updateUser};
+    localStorage.setItem('auth', JSON.stringify(next));
+
+    //feedback global event
+    setMsg(msg, '✅ Sauvegardé !', true);
     window.dispatchEvent(new CustomEvent('auth:changed'));
+    }
+    catch (err) {
+      setMsg(msg, 'Erreur reseau.', false);
+    }
   });
-
+  
   //reset bouton
   const cancel = document.getElementById('profileCancel') as HTMLButtonElement | null;
   cancel?.addEventListener('click', () => {

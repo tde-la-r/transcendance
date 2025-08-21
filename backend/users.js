@@ -57,9 +57,9 @@ async function usersRoutes(fastify) {
       return reply.code(400).send({ error: 'Invalid alias', details: ali.errors });
 
 
-    const newUsername = ures.value;
-    const newAlias    = ares.value;
-    const newAvatar   = avatar_url != null ? String(avatar_url).trim() : null;
+    const newUsername = user.value;
+    const newAlias    = (ali.value === '' ? null : ali.value);
+    const newAvatar   = (avatar_url && String(avatar_url).trim()) || null;
 
     // optionnel : vérifier que l’utilisateur existe
     const existing = await dbGet('SELECT id FROM users WHERE id = ?', [id]);
@@ -68,7 +68,7 @@ async function usersRoutes(fastify) {
     try {
       await dbRun(
         `UPDATE users
-         SET username = ?, alias = ?, avatar_url = ?
+         SET username = ?, "alias" = ?, avatar_url = ?
          WHERE id = ?`,
         [newUsername, newAlias, newAvatar, id]
       );
@@ -79,18 +79,34 @@ async function usersRoutes(fastify) {
       );
 
       return reply.send({ ok: true, user: updated });
-    } catch (err) {
-      // Gestion des contraintes uniques SQLite
-      if (String(err.message || '').includes('UNIQUE constraint failed')) {
-        // on détecte si c’est username ou alias
-        const field = err.message.includes('.username') ? 'username'
-                    : err.message.includes('.alias') ? 'alias'
+//     } catch (err) {
+//       // Gestion des contraintes uniques SQLite
+//       if (String(err.message || '').includes('UNIQUE constraint failed')) {
+//         // on détecte si c’est username ou alias
+//         const field = err.message.includes('.username') ? 'username'
+//                     : err.message.includes('.alias') ? 'alias'
+//                     : 'unique';
+//         return reply.code(409).send({ error: `This ${field} is already taken.` });
+//       }
+//       fastify.log.error(err);
+//       return reply.code(500).send({ error: 'Internal server error' });
+//     }
+      } catch (err) {
+        fastify.log.error({
+          msg: 'UPDATE users failed',
+          params: { id, newUsername, newAlias, newAvatar },
+          err: { message: err.message, code: err.code, stack: err.stack }
+        });
+
+        const m = String(err.message || '');
+        if (m.includes('UNIQUE constraint failed')) {
+          const field = m.includes('users.username') ? 'username'
+                    : m.includes('users.alias')    ? 'alias'
                     : 'unique';
-        return reply.code(409).send({ error: `This ${field} is already taken.` });
+          return reply.code(409).send({ error: `This ${field} is already taken.` });
+        }
+        return reply.code(500).send({ error: 'Internal server error' });
       }
-      fastify.log.error(err);
-      return reply.code(500).send({ error: 'Internal server error' });
-    }
   });
 }
 

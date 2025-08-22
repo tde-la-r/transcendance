@@ -1,6 +1,7 @@
 
 import "../style.css";
 import "../output.css";
+import { initLoginPage } from "./login";
 import { mountRegisterHandlers } from "./register";
 import { mountLoginHandlers } from "./login";
 import { mountDashboard, laodDashboard, paintDashboardUsername } from "./dashboard";
@@ -106,12 +107,14 @@ document.addEventListener('click', (e) => {
 window.addEventListener('hashchange', () => {
   setupAuthMenu();
   loadPage();
+  initCurrentRouteIfNeeded();
 });
 
 window.addEventListener('DOMContentLoaded', async () => {
   await loadLayout();
   setupLangDropdown();
   await loadPage();
+  initCurrentRouteIfNeeded();
 });
 
 // réagit aux changements d’auth (login/logout) pour rafraîchir UI + dashboard
@@ -125,3 +128,11 @@ window.addEventListener('auth:changed', () => {
     mountDashboard();
   }
 });
+
+function initCurrentRouteIfNeeded() {
+  const hash = window.location.hash || '#login';
+  
+  if (hash === '#login' || hash.startsWith('#login')) {
+    initLoginPage();
+  }
+}

@@ -1,6 +1,7 @@
 
 import "../style.css";
 import "../output.css";
+import { initFriendPage } from "./friends";
 import { initLoginPage } from "./login";
 import { mountRegisterHandlers } from "./register";
 import { mountLoginHandlers } from "./login";

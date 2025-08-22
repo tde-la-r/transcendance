@@ -1,5 +1,6 @@
 const fastify = require('fastify')({ logger: true });
 
+const cookie = require('@fastify/cookie');
 const authRoutes = require('./auth');
 const cors = require('@fastify/cors');
 const usersRoutes = require('./users');
@@ -30,6 +31,11 @@ fastify.get('/api/users/:id/stats', async (req, reply) => {
 fastify.register(cors, {
     origin: true, // accepte toutes les origines (à restreindre en prod)
     credentials: true
+});
+
+fastify.register(cookie, {
+  // secret optionnel si tu veux des cookies signés
+  // secret: process.env.COOKIE_SECRET
 });
 
 fastify.register(authRoutes, {prefix: '/api/auth'});

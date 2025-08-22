@@ -208,8 +208,15 @@ Gameplay and user experience
 ◦ Major module: Replace basic Pong with server-side Pong and implement an
 API.
 
+
+
+
+
+
 .2 Web
 These modules enable the integration of advanced web features into your Pong game.
+
+
 • Major module: Use a framework to build the backend.
 In this major module, you are required to use a specific web framework for backend
 development: Fastify with Node.js .
@@ -217,6 +224,8 @@ You can create the backend without using the constraints of this
 module by using the default backend language (as specified above in
 the mandatory part). However, this module will only be valid if you
 follow its requirements.
+
+
 • Minor module: Use a framework or toolkit to build the front-end.
 Your frontend development must use the Tailwind CSS in addition of the Type-
 script, and nothing else.
@@ -224,10 +233,16 @@ You can create a front-end without using the constraints of this
 module by using the default front-end directives (as specified above
 in the mandatory part). However, this module will only be valid if
 you follow its requirements.
+
+
 • Minor module: Use a database for the backend -and more.
 The designated database for all DB instances in your project is SQLite This choice
 ensure data consistency and compatibility across all project components and may
 be a prerequisite for other modules, such as the backend Framework module.
+
+
+
+
 
 V.3 User Management
 This module delves into the realm of User Management, addressing key aspects of
@@ -235,6 +250,8 @@ user interactions and access control within the Pong platform. It encompasses tw
 components, each focused on essential elements of user management and authentica-
 tion: user participation across multiple tournaments and the implementation of remote
 authentication.
+
+
 • Major module: Standard user management, authentication and users across tour-
 naments.
 ◦ Users can securely subscribe to the website.
@@ -248,6 +265,8 @@ naments.
 details, accessible to logged-in users.
 The management of duplicate usernames/emails is at your discretion;
 please ensure a logical solution is provided.
+
+
 • Major module: Implement remote authentication.
 In this major module, the goal is to implement a secure external authentication
 system using OAuth 2.0 .

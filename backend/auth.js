@@ -1,3 +1,6 @@
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+const oauth2 = require('@fastify/oauth2');
 const bcrypt = require('bcrypt');
 const db = require('./db');
 
@@ -22,7 +25,7 @@ function dbRun(sql, params = []) {
 function validatePassword(password, { username, email }) {
   const errors = [];
   if (typeof password !== 'string') errors.push('Password must be a string.');
-  if (password.length < 8) errors.push('Password must be at least 10 characters.');
+  if (password.length < 8) errors.push('Password must be at least 8 characters.');
   if (password.length > 72) errors.push('Password must be at most 72 characters.'); // bcrypt limit
   if (!/[a-z]/.test(password)) errors.push('Password must include a lowercase letter.');
   if (!/[A-Z]/.test(password)) errors.push('Password must include an uppercase letter.');
@@ -70,6 +73,22 @@ function validateEmail(email) {
 }
 
 async function authRoute(fastify, options) {
+
+  fastify.register(oauth2, {
+    name: 'googleOAuth2',
+    scope: ['openid', 'email', 'profile'],
+    credentials: {
+      client: {
+        id: process.env.GOOGLE_CLIENT_ID,
+        secret: process.env.GOOGLE_CLIENT_SECRET
+      },
+      auth: oauth2.GOOGLE_CONFIGURATION
+    },
+    startRedirectPath: '/google',            // GET /api/auth/google
+    callbackUri: (req) => `${req.protocol}://${req.headers.host}/api/auth/google/callback`, // /api/auth/google/callback
+    cookie: { secure: false, sameSite: 'lax' }
+  });
+
   fastify.post('/register', async (request, reply) => {
     let { username, email, password } = request.body || {};
     username = String(username || '').trim();
@@ -133,8 +152,138 @@ async function authRoute(fastify, options) {
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return reply.code(400).send({ error: 'Wrong password.' });
 
+    // émettre une session
+    const token = jwt.sign({ uid: user.id }, JWT_SECRET, { expiresIn: '7d' });
+      reply.setCookie('session', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false, // true en prod derrière HTTPS
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7
+    });
     return reply.send({ ok: true, message: 'Login successful', user: { id: user.id, username: user.username, email: user.email ?? user.Email } });
   });
+
+  fastify.get('/google/callback', async (req, reply) => {
+    try {
+      fastify.log.info({ at: 'google/callback', query: req.query, cookies: req.cookies });
+      const tok = await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(req);
+      const accessToken = tok?.access_token || tok?.token?.access_token;
+      if (!accessToken) {
+        fastify.log.error({ msg: 'No access_token from Google', tok });
+        return reply.code(500).send({ error: 'OAuth callback failed' });
+      }
+
+      // Récupérer le profil Google (email, name, picture)
+      const resp = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+     });
+     if (!resp.ok) {
+      const txt = await resp.text().catch(() => '');
+      throw new Error(`userinfo HTTP ${resp.status} ${txt}`);
+     }
+     const googleProfile = await resp.json();
+
+      const googleEmail = String(googleProfile.email || '').toLowerCase().trim();
+      const googleName  = String(googleProfile.name || '').trim();
+      const googleId    = String(googleProfile.id || '').trim();
+      const googleAvatar = String(googleProfile.picture || '').trim();
+
+      if (!googleEmail) {
+        return reply.code(400).send({ error: 'Google account has no public email.' });
+      }
+
+      // upsert user local
+      const user = await upsertUserFromGoogle({ googleEmail, googleName, googleId, googleAvatar });
+
+       // session cookie
+      const token = jwt.sign({ uid: user.id }, JWT_SECRET, { expiresIn: '7d' });
+      reply.setCookie('session', token, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: false, // true en prod HTTPS
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7
+      });
+      // Redirection vers le front avec un “ok=1”. Plus tard tu pourras passer un token/cookie.
+      const redirectTo = process.env.FRONT_REDIRECT_URI || '/#login';
+      // Tip simple: attachons l'ID et username en query pour démo (éviter en prod, préférer cookie ou JWT)
+      const url = new URL(redirectTo, 'http://localhost:3000');
+      url.searchParams.set('ok', '1');
+      url.searchParams.set('provider', 'google');
+      url.searchParams.set('id', String(user.id));
+      url.searchParams.set('username', String(user.username));
+      url.searchParams.set('email', String(user.email));
+
+      reply.redirect(url.toString());
+    } catch (err) {
+      fastify.log.error({ msg: 'Google OAuth callback failed', err: { message: err.message, stack: err.stack } });
+      return reply.code(500).send({ error: 'OAuth callback failed' });
+    }
+  });
+
+
+  // Qui suis-je ? (utilisé par le front)
+  fastify.get('/me', async (req, reply) => {
+    const raw = req.cookies?.session;
+    if (!raw) return reply.code(401).send({ error: 'Not authenticated' });
+    try {
+      const { uid } = jwt.verify(raw, JWT_SECRET);
+      const me = await dbGet('SELECT id, email, username, alias, avatar_url, wins, losses FROM users WHERE id = ?', [uid]);
+      if (!me) return reply.code(401).send({ error: 'Not authenticated' });
+      return reply.send({ ok: true, user: me });
+    } catch {
+      return reply.code(401).send({ error: 'Not authenticated' });
+    }
+  });
+
+
+  // Logout
+  fastify.post('/logout', async (req, reply) => {
+    reply.clearCookie('session', { path: '/' });
+    return reply.send({ ok: true });
+  });
 }
+
+
+// Helper local à auth.js : créer / associer un user
+async function upsertUserFromGoogle({ googleEmail, googleName, googleId, googleAvatar }) {
+  // essaie par email
+  let user = await dbGet('SELECT * FROM users WHERE email = ?', [googleEmail]);
+  if (user) {
+    // mets à jour avatar_url si vide
+    if (!user.avatar_url && googleAvatar) {
+      await dbRun('UPDATE users SET avatar_url = ? WHERE id = ?', [googleAvatar, user.id]);
+      user = await dbGet('SELECT * FROM users WHERE id = ?', [user.id]);
+    }
+    return user;
+  }
+
+  // créer un username unique basé sur l'email local-part
+  const base = googleEmail.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '').slice(0, 16) || 'player';
+  let candidate = base;
+  let i = 0;
+  while (await dbGet('SELECT 1 FROM users WHERE username = ?', [candidate])) {
+    i += 1;
+    candidate = `${base}${i}`;
+  }
+
+  const username = candidate;
+  const alias = username;
+
+  // mot de passe factice (tu pourras rendre password NULL plus tard si tu fais une vraie migration)
+  const fakePasswordHash = await bcrypt.hash(`oauth-google:${googleId}:${Date.now()}`, 10);
+
+  const avatar = googleAvatar || null;
+
+  const result = await dbRun(
+    'INSERT INTO users (email, username, password, alias, avatar_url) VALUES (?, ?, ?, ?, ?)',
+    [googleEmail, username, fakePasswordHash, alias, avatar]
+  );
+  const newId = result.lastID;
+  const newUser = await dbGet('SELECT * FROM users WHERE id = ?', [newId]);
+  return newUser;
+}
+
 
 module.exports = authRoute;

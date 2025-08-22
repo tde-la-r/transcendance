@@ -39,6 +39,7 @@ const PAGE_MAP: Record<string, { file: string; mount?: () => void; protected?: b
   dashboard:  {file: 'dashboard.html', mount: () => { mountDashboard(); laodDashboard?.(); paintDashboardUsername(); }, protected: true},
   //play:       {file: 'play.html', mount: mountPlayHandlers, protected: true},
   profils:    {file: 'profile.html', mount: mountProfileHandlers, protected: true},
+  friends:    {file: 'friends.html', mount: initFriendPage, protected: true},
 };
 
 function normalizePage(rawHash: string): string {

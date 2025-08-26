@@ -1,16 +1,43 @@
+import { Engine, Scene, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Color3, FreeCamera } from "@babylonjs/core";
+
 export function initPongPage() {
   const canvas = document.getElementById("pong-canvas") as HTMLCanvasElement;
   if (!canvas) return;
-  const ctx = canvas.getContext("2d")!;
 
+  const engine = new Engine(canvas, true);
+  const scene = new Scene(engine);
+
+  const camera = new FreeCamera("camera", new Vector3(0, 0, -1000), scene);
+  camera.mode = 1;
+  camera.setTarget(Vector3.Zero());
+
+  const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+
+  const GAME_WIDTH = 800;
+  const GAME_HEIGHT = 400;
   const PADDLE_WIDTH = 10;
   const PADDLE_HEIGHT = 80;
   const BALL_SIZE = 10;
 
-  let leftY = canvas.height / 2 - PADDLE_HEIGHT / 2;
-  let rightY = canvas.height / 2 - PADDLE_HEIGHT / 2;
-  let ballX = canvas.width / 2;
-  let ballY = canvas.height / 2;
+  const paddleMat = new StandardMaterial("paddleMat", scene);
+  paddleMat.diffuseColor = Color3.White();
+  const ballMat = new StandardMaterial("ballMat", scene);
+  ballMat.diffuseColor = Color3.White();
+
+  const leftPaddle = MeshBuilder.CreateBox("leftPaddle", { width: PADDLE_WIDTH, height: PADDLE_HEIGHT, depth: 1 }, scene);
+  leftPaddle.material = paddleMat;
+  leftPaddle.position.x = -GAME_WIDTH / 2 + PADDLE_WIDTH;
+
+  const rightPaddle = MeshBuilder.CreateBox("rightPaddle", { width: PADDLE_WIDTH, height: PADDLE_HEIGHT, depth: 1 }, scene);
+  rightPaddle.material = paddleMat;
+  rightPaddle.position.x = GAME_WIDTH / 2 - PADDLE_WIDTH;
+
+  const ball = MeshBuilder.CreateSphere("ball", { diameter: BALL_SIZE }, scene);
+  ball.material = ballMat;
+
+  let leftY = 0;
+  let rightY = 0;
+  let ballPos = new Vector3(0, 0, 0);
   let ballVX = 4 * (Math.random() > 0.5 ? 1 : -1);
   let ballVY = 2 * (Math.random() > 0.5 ? 1 : -1);
   let ballSpeed = 5;
@@ -18,22 +45,21 @@ export function initPongPage() {
   const keysPressed: Record<string, boolean> = {};
 
   document.addEventListener("keydown", (e) => {
-    if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
+    if (["w", "s", "ArrowUp", "ArrowDown"].includes(e.key)) {
       e.preventDefault();
       keysPressed[e.key] = true;
     }
   });
 
   document.addEventListener("keyup", (e) => {
-    if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
+    if (["w", "s", "ArrowUp", "ArrowDown"].includes(e.key)) {
       e.preventDefault();
       keysPressed[e.key] = false;
     }
   });
 
   function resetBall() {
-    ballX = canvas.width / 2;
-    ballY = canvas.height / 2;
+    ballPos = new Vector3(0, 0, 0);
     ballSpeed = 5;
     ballVX = ballSpeed * (Math.random() > 0.5 ? 1 : -1);
     ballVY = (Math.random() - 0.5) * 4;
@@ -42,78 +68,54 @@ export function initPongPage() {
   function update() {
     const paddleSpeed = 6;
 
-    if (keysPressed["w"] && leftY > 0) {
-      leftY -= paddleSpeed;
-    }
-    if (keysPressed["s"] && leftY + PADDLE_HEIGHT < canvas.height) {
-      leftY += paddleSpeed;
-    }
+    if (keysPressed["w"] && leftY + PADDLE_HEIGHT/2 < GAME_HEIGHT/2) leftY += paddleSpeed;
+    if (keysPressed["s"] && leftY - PADDLE_HEIGHT/2 > -GAME_HEIGHT/2) leftY -= paddleSpeed;
+    if (keysPressed["ArrowUp"] && rightY + PADDLE_HEIGHT/2 < GAME_HEIGHT/2) rightY += paddleSpeed;
+    if (keysPressed["ArrowDown"] && rightY - PADDLE_HEIGHT/2 > -GAME_HEIGHT/2) rightY -= paddleSpeed;
 
-    if (keysPressed["ArrowUp"] && rightY > 0) {
-      rightY -= paddleSpeed;
-    }
-    if (keysPressed["ArrowDown"] && rightY + PADDLE_HEIGHT < canvas.height) {
-      rightY += paddleSpeed;
-    }
+    leftPaddle.position.y = leftY;
+    rightPaddle.position.y = rightY;
 
-    ballX += ballVX;
-    ballY += ballVY;
+    ballPos.x += ballVX;
+    ballPos.y += ballVY;
+    ball.position = ballPos;
 
-    if (ballY < BALL_SIZE / 2 || ballY > canvas.height - BALL_SIZE / 2) {
+    if (ballPos.y > GAME_HEIGHT/2 - BALL_SIZE/2 || ballPos.y < -GAME_HEIGHT/2 + BALL_SIZE/2) {
       ballVY *= -1;
     }
 
     if (
-      ballX < PADDLE_WIDTH &&
-      ballY > leftY &&
-      ballY < leftY + PADDLE_HEIGHT
+      ballPos.x < leftPaddle.position.x + PADDLE_WIDTH/2 &&
+      ballPos.x > leftPaddle.position.x - PADDLE_WIDTH/2 &&
+      ballPos.y < leftY + PADDLE_HEIGHT/2 &&
+      ballPos.y > leftY - PADDLE_HEIGHT/2
     ) {
-      let hitPos = (ballY - (leftY + PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
       ballVX = Math.abs(ballVX);
-      ballVY = hitPos * 5;
       ballSpeed *= 1.05;
       ballVX = ballSpeed;
+      let hitPos = (ballPos.y - leftY) / (PADDLE_HEIGHT/2);
+      ballVY = hitPos * 5;
     }
 
     if (
-      ballX > canvas.width - PADDLE_WIDTH &&
-      ballY > rightY &&
-      ballY < rightY + PADDLE_HEIGHT
+      ballPos.x > rightPaddle.position.x - PADDLE_WIDTH/2 &&
+      ballPos.x < rightPaddle.position.x + PADDLE_WIDTH/2 &&
+      ballPos.y < rightY + PADDLE_HEIGHT/2 &&
+      ballPos.y > rightY - PADDLE_HEIGHT/2
     ) {
-      let hitPos = (ballY - (rightY + PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
       ballVX = -Math.abs(ballVX);
-      ballVY = hitPos * 5;
       ballSpeed *= 1.05;
       ballVX = -ballSpeed;
+      let hitPos = (ballPos.y - rightY) / (PADDLE_HEIGHT/2);
+      ballVY = hitPos * 5;
     }
 
-    if (ballX < 0 || ballX > canvas.width) {
+    if (ballPos.x < -GAME_WIDTH/2 || ballPos.x > GAME_WIDTH/2) {
       resetBall();
     }
 
-    draw();
+    scene.render();
     requestAnimationFrame(update);
-  }
-
-  function draw() {
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, leftY, PADDLE_WIDTH, PADDLE_HEIGHT);
-    ctx.fillRect(
-      canvas.width - PADDLE_WIDTH,
-      rightY,
-      PADDLE_WIDTH,
-      PADDLE_HEIGHT
-    );
-
-    ctx.fillRect(
-      ballX - BALL_SIZE / 2,
-      ballY - BALL_SIZE / 2,
-      BALL_SIZE,
-      BALL_SIZE
-    );
   }
 
   resetBall();

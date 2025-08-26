@@ -11,21 +11,88 @@ export function initPongPage() {
   let rightY = canvas.height / 2 - PADDLE_HEIGHT / 2;
   let ballX = canvas.width / 2;
   let ballY = canvas.height / 2;
-  let ballVX = 4;
-  let ballVY = 2;
+  let ballVX = 4 * (Math.random() > 0.5 ? 1 : -1);
+  let ballVY = 2 * (Math.random() > 0.5 ? 1 : -1);
+  let ballSpeed = 5;
+
+  const keysPressed: Record<string, boolean> = {};
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "w" && leftY - 20 >= 0) leftY -= 20;
-    if (e.key === "s" && leftY + PADDLE_HEIGHT + 20 <= canvas.height) leftY += 20;
-    if (e.key === "ArrowUp" && rightY - 20 >= 0) rightY -= 20;
-	if (e.key === "ArrowDown" && rightY + PADDLE_HEIGHT + 20 <= canvas.height) rightY += 20;
+    if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
+      e.preventDefault();
+      keysPressed[e.key] = true;
+    }
+  });
+
+  document.addEventListener("keyup", (e) => {
+    if (["ArrowUp", "ArrowDown", "w", "s"].includes(e.key)) {
+      e.preventDefault();
+      keysPressed[e.key] = false;
+    }
   });
 
   function resetBall() {
     ballX = canvas.width / 2;
     ballY = canvas.height / 2;
-    ballVX = 4 * (Math.random() > 0.5 ? 1 : -1);
-    ballVY = 2 * (Math.random() > 0.5 ? 1 : -1);
+    ballSpeed = 5;
+    ballVX = ballSpeed * (Math.random() > 0.5 ? 1 : -1);
+    ballVY = (Math.random() - 0.5) * 4;
+  }
+
+  function update() {
+    const paddleSpeed = 6;
+
+    if (keysPressed["w"] && leftY > 0) {
+      leftY -= paddleSpeed;
+    }
+    if (keysPressed["s"] && leftY + PADDLE_HEIGHT < canvas.height) {
+      leftY += paddleSpeed;
+    }
+
+    if (keysPressed["ArrowUp"] && rightY > 0) {
+      rightY -= paddleSpeed;
+    }
+    if (keysPressed["ArrowDown"] && rightY + PADDLE_HEIGHT < canvas.height) {
+      rightY += paddleSpeed;
+    }
+
+    ballX += ballVX;
+    ballY += ballVY;
+
+    if (ballY < BALL_SIZE / 2 || ballY > canvas.height - BALL_SIZE / 2) {
+      ballVY *= -1;
+    }
+
+    if (
+      ballX < PADDLE_WIDTH &&
+      ballY > leftY &&
+      ballY < leftY + PADDLE_HEIGHT
+    ) {
+      let hitPos = (ballY - (leftY + PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
+      ballVX = Math.abs(ballVX);
+      ballVY = hitPos * 5;
+      ballSpeed *= 1.05;
+      ballVX = ballSpeed;
+    }
+
+    if (
+      ballX > canvas.width - PADDLE_WIDTH &&
+      ballY > rightY &&
+      ballY < rightY + PADDLE_HEIGHT
+    ) {
+      let hitPos = (ballY - (rightY + PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
+      ballVX = -Math.abs(ballVX);
+      ballVY = hitPos * 5;
+      ballSpeed *= 1.05;
+      ballVX = -ballSpeed;
+    }
+
+    if (ballX < 0 || ballX > canvas.width) {
+      resetBall();
+    }
+
+    draw();
+    requestAnimationFrame(update);
   }
 
   function draw() {
@@ -34,20 +101,21 @@ export function initPongPage() {
 
     ctx.fillStyle = "white";
     ctx.fillRect(0, leftY, PADDLE_WIDTH, PADDLE_HEIGHT);
-    ctx.fillRect(canvas.width - PADDLE_WIDTH, rightY, PADDLE_WIDTH, PADDLE_HEIGHT);
-    ctx.fillRect(ballX - BALL_SIZE / 2, ballY - BALL_SIZE / 2, BALL_SIZE, BALL_SIZE);
+    ctx.fillRect(
+      canvas.width - PADDLE_WIDTH,
+      rightY,
+      PADDLE_WIDTH,
+      PADDLE_HEIGHT
+    );
 
-    ballX += ballVX;
-    ballY += ballVY;
-
-    if (ballY < BALL_SIZE / 2 || ballY > canvas.height - BALL_SIZE / 2) ballVY *= -1;
-    if (ballX < PADDLE_WIDTH && ballY > leftY && ballY < leftY + PADDLE_HEIGHT) ballVX *= -1;
-    if (ballX > canvas.width - PADDLE_WIDTH && ballY > rightY && ballY < rightY + PADDLE_HEIGHT) ballVX *= -1;
-
-    if (ballX < 0 || ballX > canvas.width) resetBall();
-
-    requestAnimationFrame(draw);
+    ctx.fillRect(
+      ballX - BALL_SIZE / 2,
+      ballY - BALL_SIZE / 2,
+      BALL_SIZE,
+      BALL_SIZE
+    );
   }
 
-  draw();
+  resetBall();
+  update();
 }

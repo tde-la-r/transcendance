@@ -15,10 +15,10 @@ export function initPongPage() {
   let ballVY = 2;
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "z") leftY -= 20;
-    if (e.key === "s") leftY += 20;
-    if (e.key === "ArrowUp") rightY -= 20;
-    if (e.key === "ArrowDown") rightY += 20;
+    if (e.key === "w" && leftY - 20 >= 0) leftY -= 20;
+    if (e.key === "s" && leftY + PADDLE_HEIGHT + 20 <= canvas.height) leftY += 20;
+    if (e.key === "ArrowUp" && rightY - 20 >= 0) rightY -= 20;
+	if (e.key === "ArrowDown" && rightY + PADDLE_HEIGHT + 20 <= canvas.height) rightY += 20;
   });
 
   function resetBall() {

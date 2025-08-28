@@ -41,7 +41,7 @@ const PAGE_MAP: Record<string, { file: string; mount?: () => void; protected?: b
   //play:       {file: 'play.html', mount: mountPlayHandlers, protected: true},
   profils:    {file: 'profile.html', mount: mountProfileHandlers, protected: true},
   friends:    {file: 'friends.html', mount: initFriendPage, protected: true},
-  pong:       {file: 'pong.html', mount: initPongPage, protected: false},
+  pong:       {file: 'pong.html', mount: initPongPage, protected: false}, //set to true when finished
 };
 
 function normalizePage(rawHash: string): string {

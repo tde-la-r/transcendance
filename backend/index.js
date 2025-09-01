@@ -4,7 +4,7 @@ const cookie = require('@fastify/cookie');
 const authRoutes = require('./auth');
 const cors = require('@fastify/cors');
 const usersRoutes = require('./users');
-// --- STATS API ULTRA SIMPLE ---
+const friendsRoutes = require('./friends');
 const db = require('./db');
 
 function dbGet(sql, params = []) {
@@ -41,6 +41,8 @@ fastify.register(cookie, {
 fastify.register(authRoutes, {prefix: '/api/auth'});
 
 fastify.register(usersRoutes, { prefix: '/api/users' });
+
+fastify.register(friendsRoutes, { prefix: '/api' });
 
 // demarrage du serveur sur le port 3000
 const start = async () => {

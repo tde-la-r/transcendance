@@ -44,7 +44,7 @@ export function initPongPage() {
 	engine.runRenderLoop(() => scene.render());
 }
 
-// ---- Create Babylon Mesh ----
+// ---- Create Mesh ----
 function createGameObjects(scene: Scene) { 
 	const GAME_HEIGHT = 400;
 	const PADDLE_LENGTH = 80;
@@ -75,7 +75,7 @@ function createGameObjects(scene: Scene) {
 	return { leftPaddle, rightPaddle, ball, scoreTexture };
 }
 
-// ---- Create Middle Line ----
+// ---- Midle Line ----
 function createMiddleLine(scene: Scene, gameHeight: number, segmentHeight = 10, gap = 10) {
 	const lineMaterial = new StandardMaterial("lineMat", scene);
 	lineMaterial.diffuseColor = Color3.White();
@@ -116,7 +116,7 @@ function updateCamera(cam: UniversalCamera, paddle: any, target: Vector3) {
 	cam.setTarget(target);
 }
 
-// ---- Controls ----
+// ---- Controles ----
 function setupControls(
 	ws: WebSocket,
 	scene: Scene,

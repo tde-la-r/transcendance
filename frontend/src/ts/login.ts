@@ -41,7 +41,10 @@ export function mountLoginHandlers() {
       // NOUVEAU signale au layout que l’état a changé
       window.dispatchEvent(new CustomEvent('auth:changed'));
       msg && (msg.textContent = 'Connexion réussie !');
-      setTimeout(() => { location.hash = '#dashboard'; }, 600);
+      setTimeout(() => { 
+        history.pushState({}, '', '/dashboard');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }, 600);
     } catch (err: any) {
       msg && (msg.textContent = err?.message || 'Erreur réseau');
       btn && (btn.disabled = false);
@@ -69,7 +72,8 @@ function  handleOAuthRedirectFromGoogle(): boolean {
       const user = { id, username, email };
       localStorage.setItem('auth', JSON.stringify(user));
       clearQuery();
-      window.location.hash = '#dashboard';
+      history.pushState({}, '', '/dashboard');
+      window.dispatchEvent(new PopStateEvent('popstate'));
       return true;
     }
   }
@@ -94,7 +98,8 @@ export function initLoginPage() {
     try {
       const user = JSON.parse(saved);
       if (user?.id) {
-        window.location.hash = '#dashboard';
+        history.pushState({}, '', '/dashboard');
+        window.dispatchEvent(new PopStateEvent('popstate'));
       }
     } catch {}
   }

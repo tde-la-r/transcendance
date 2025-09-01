@@ -42,7 +42,10 @@ export function mountRegisterHandlers() {
     }
 
       setMsg('Compte créé ! Redirection…');
-      setTimeout(() => { location.hash = '#login'; }, 700);
+      setTimeout(() => {
+        history.pushState({}, '', '/login');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }, 700);
     } catch (err: any) {
       setMsg(err?.message || 'Erreur réseau');
     } finally {

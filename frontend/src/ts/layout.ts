@@ -14,10 +14,10 @@ function setupAuthMenu() {
 
   if (!authed) {
     closeAuthDropdown();
-    btn.setAttribute('href', '#login');
+    btn.setAttribute('href', '/login')
     btn.title = 'Connexion';
   } else {
-    btn.setAttribute('href', '#');
+    btn.setAttribute('href', '/');
     btn.title = 'Menu du compte';
 
     //CLICK BTN PROFIL
@@ -43,7 +43,8 @@ function setupAuthMenu() {
     if (profils) {
       profils.onclick = () => {
         closeAuthDropdown();
-        location.hash = '#profils';
+        history.pushState({}, '', '/profils');
+        window.dispatchEvent(new PopStateEvent('popstate'));
       };
     }
 
@@ -54,7 +55,8 @@ function setupAuthMenu() {
         localStorage.removeItem('auth');
         closeAuthDropdown();
         setupAuthMenu();
-        location.hash = '#login';
+        history.replaceState({}, '', '/login');
+        window.dispatchEvent(new PopStateEvent('popstate'));
       };
     }
 

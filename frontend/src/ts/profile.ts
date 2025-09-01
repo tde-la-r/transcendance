@@ -110,7 +110,11 @@ export function mountProfileHandlers() {
 
   let user: any = null;
   try { user = JSON.parse(localStorage.getItem('auth') || 'null'); } catch {}
-  if (!user) { location.replace('#login'); return; }
+  if (!user) { 
+    history.replaceState({}, '', '/login');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    return;
+  }
 
   //email lecture seule
   if (emailIn) { emailIn.value = user.email ?? ''; emailIn.disabled = true; }

@@ -12,6 +12,7 @@ function startGameServer(server) {
 	const LEFT_PADDLE_X = -GAME_WIDTH / 2 + PADDLE_HEIGHT;
 	const RIGHT_PADDLE_X = GAME_WIDTH / 2 - PADDLE_HEIGHT;
 	const BALL_RADIUS = 10;
+	const WIN_SCORE = 10;
 
 	// ---- Game State ----
 	const state = createInitialState();
@@ -31,11 +32,21 @@ function startGameServer(server) {
 
 	function createInitialState() {
 		return {
+			status: "idle",
 			ball: { x: 0, y: 0, vx: 0, vy: 0, speed: 5 },
 			left: { y: 0, up: false, down: false },
 			right: { y: 0, up: false, down: false },
 			score: { left: 0, right: 0 },
+			winner: null,
 		};
+	}
+
+	function resetGame(state) {
+		state.status = "idle";
+		state.score.left = 0;
+		state.score.right = 0;
+		state.winner = null;
+		resetBall(state);
 	}
 
 	function resetBall(state) {
@@ -45,11 +56,13 @@ function startGameServer(server) {
 		state.ball.vy = 0;
 		state.ball.speed = 0;
 
-		setTimeout(() => {
-			state.ball.speed = 5;
-			state.ball.vx = state.ball.speed * (Math.random() > 0.5 ? 1 : -1);
-			state.ball.vy = (Math.random() - 0.5) * 4;
-		}, 1000);
+		if (state.status === "playing") {
+			setTimeout(() => {
+				state.ball.speed = 5;
+				state.ball.vx = state.ball.speed * (Math.random() > 0.5 ? 1 : -1);
+				state.ball.vy = (Math.random() - 0.5) * 4;
+			}, 1000);
+		}
 	}
 
 	function setupWebSocket(wss, state) {
@@ -73,6 +86,16 @@ function startGameServer(server) {
 				player.up = data.dir === "up";
 				player.down = data.dir === "down";
 			}
+
+			// If somebody move, start the game //To change with proper hook
+			if (state.status === "idle") {
+				state.status = "playing";
+				resetBall(state);
+			}
+		}
+
+			if (data.type === "restart") {
+				resetGame(state);
 		}
 	}
 
@@ -132,13 +155,28 @@ function startGameServer(server) {
 	}
 
 	function handleScore(state) {
+		if (state.status !== "playing") return;
+
 		if (state.ball.x < -GAME_WIDTH / 2) {
 			state.score.right++;
+			checkWin(state);
 			resetBall(state);
 		}
 		if (state.ball.x > GAME_WIDTH / 2) {
 			state.score.left++;
+			checkWin(state);
 			resetBall(state);
+		}
+	}
+
+	function checkWin(state) {
+		if (state.score.left >= WIN_SCORE) {
+			state.status = "finished";
+			state.winner = "left";
+		}
+		if (state.score.right >= WIN_SCORE) {
+			state.status = "finished";
+			state.winner = "right";
 		}
 	}
 

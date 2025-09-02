@@ -13,14 +13,27 @@ const state = {
   friends: [] as Friend[],
 }
 
-function $(sel: string): HTMLElement {
-  const el = document.querySelector(sel) as HTMLElement | null;
-  if (!el) throw new Error(`Element not found: ${sel}`);
-  return el;
+async function waitEl<T extends HTMLElement = HTMLElement>(sel: string, tries = 10): Promise<T> {
+  let el = document.querySelector<T>(sel);
+  if (el) return el;
+  return await new Promise<T>((resolve, reject) => {
+    const check = () => {
+      el = document.querySelector<T>(sel);
+      if (el) return resolve(el);
+      if (tries-- <= 0) return reject(new Error(`Element not found after mount: ${sel}`));
+      requestAnimationFrame(check);
+    };
+    check();
+  });
+}
+
+function getEl<T extends HTMLElement = HTMLElement>(sel: string): T | null {
+  return document.querySelector<T>(sel);
 }
 
 function setMsg(txt: string, kind: 'info'|'ok'|'err'='info') {
-  const el = $('#friendsMsg');
+  const el = getEl<HTMLElement>('#friendsMsg');
+  if (!el) return;
   el.textContent = txt;
   el.classList.remove('text-pink-200','text-green-300','text-red-300');
   el.classList.add(
@@ -69,7 +82,9 @@ async function removeFriend(id: number) {
 }
 
 function renderFriends(items: Friend[]) {
-  const ul = $('#friendsList') as HTMLUListElement;
+  console.log('[friends] render', items.length);
+  const ul = getEl<HTMLUListElement>('#friendsList');
+  if (!ul) return;
   ul.innerHTML = '';
 
   if (!items.length) {
@@ -123,9 +138,10 @@ async function refreshList() {
 
 export async function initFriendsPage() {
   // Sélecteurs
-  const form = $('#friendSearchForm') as HTMLFormElement;
-  const input = $('#friendsSearchInput') as HTMLInputElement;
-  const btn = $('#friendsAddBtn') as HTMLButtonElement;
+  console.log('[friends] initFriendsPage');
+  const form = await waitEl<HTMLFormElement>('#friendsSearchForm');
+  const input = await waitEl<HTMLFormElement>('#friendsSearchInput');
+  const btn = await waitEl<HTMLFormElement>('#friendsAddBtn');
 
   try {
     await refreshList();
@@ -145,21 +161,13 @@ export async function initFriendsPage() {
     try {
       btn.disabled = true;
       const res = await addFriend(handle);
-      
-      if (!state.friends.some(f => f.id === res.friend.id)) {
-        state.friends = [res.friend, ...state.friends];
-        renderFriends(state.friends);
-      }
+      await refreshList();
       setMsg(
         res.already ? `Vous suivez déjà « ${res.friend.username} ».`
                     : `« ${res.friend.username} » a été ajouté à vos amis.`,
         'ok'
       );
       input.value = '';
-      // re-sync
-      listFriends()
-        .then(srv => { state.friends = srv; renderFriends(state.friends); })
-        .catch(() => {});
     } catch (e:any) {
       setMsg(e.message || 'Impossible d’ajouter cet ami.', 'err');
     } finally {

@@ -30,7 +30,13 @@ fastify.get('/api/users/:id/stats', async (req, reply) => {
 
 fastify.register(cors, {
     origin: true, // accepte toutes les origines (à restreindre en prod)
-    credentials: true
+    credentials: true,
+
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: [],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
 });
 
 fastify.register(cookie, {

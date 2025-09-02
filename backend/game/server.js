@@ -84,15 +84,20 @@ function startGameServer(server) {
 	}
 
 	function updateBall(state) {
-		state.ball.x += state.ball.vx;
-		state.ball.y += state.ball.vy;
+		const steps = Math.ceil(state.ball.speed / 5);
+		for (let i = 0; i < steps; i++) {
+			state.ball.x += state.ball.vx / steps;
+			state.ball.y += state.ball.vy / steps;
 
-		// Up/Down bounces
-		if (
-			state.ball.y > GAME_HEIGHT / 2 - PADDLE_HEIGHT ||
-			state.ball.y < -GAME_HEIGHT / 2 + PADDLE_HEIGHT
-		) {
-			state.ball.vy *= -1;
+			// Up/Down bounces
+			if (
+				state.ball.y > GAME_HEIGHT / 2 - PADDLE_HEIGHT ||
+				state.ball.y < -GAME_HEIGHT / 2 + PADDLE_HEIGHT
+			) {
+				state.ball.vy *= -1;
+			}
+
+			handleCollisions(state);
 		}
 	}
 
@@ -148,7 +153,7 @@ function startGameServer(server) {
 	function gameLoop(state, wss) {
 		updatePaddles(state);
 		updateBall(state);
-		handleCollisions(state);
+		//handleCollisions(state);
 		handleScore(state);
 		broadcastState(wss, state);
 	}

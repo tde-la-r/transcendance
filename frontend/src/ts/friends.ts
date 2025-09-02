@@ -9,11 +9,16 @@ type Friend = {
 
 const API = 'http://localhost:3000';
 
+const state = {
+  friends: [] as Friend[],
+}
+
 function $(sel: string): HTMLElement {
   const el = document.querySelector(sel) as HTMLElement | null;
   if (!el) throw new Error(`Element not found: ${sel}`);
   return el;
 }
+
 function setMsg(txt: string, kind: 'info'|'ok'|'err'='info') {
   const el = $('#friendsMsg');
   el.textContent = txt;
@@ -96,8 +101,10 @@ function renderFriends(items: Friend[]) {
     btn.addEventListener('click', async () => {
       try {
         await removeFriend(f.id);
-        await refreshList();
+        state.friends = state.friends.filter(x => x.id !== f.id);
+        renderFriends(state.friends);
         setMsg(`« ${f.username} » retiré de vos amis.`, 'ok');
+        listFriends().then(srv => { state.friends = srv; renderFriends(state.friends); }).catch(() => {});
       } catch (e:any) {
         setMsg(e.message || 'Erreur lors de la suppression.', 'err');
       }
@@ -110,13 +117,22 @@ function renderFriends(items: Friend[]) {
 
 async function refreshList() {
   const friends = await listFriends();
-  renderFriends(friends);
+  state.friends = friends;
+  renderFriends(state.friends);
 }
 
 export async function initFriendsPage() {
   // Sélecteurs
   const form = $('#friendSearchForm') as HTMLFormElement;
   const input = $('#friendsSearchInput') as HTMLInputElement;
+  const btn = $('#friendsAddBtn') as HTMLButtonElement;
+
+  try {
+    await refreshList();
+    setMsg('', 'info');
+  } catch (e:any) {
+    setMsg(e.message || 'Erreur de chargement. Êtes-vous connecté ?', 'err');
+  }
 
   // Submit "Ajouter"
   form.addEventListener('submit', async (ev) => {
@@ -127,24 +143,27 @@ export async function initFriendsPage() {
       return;
     }
     try {
+      btn.disabled = true;
       const res = await addFriend(handle);
+      
+      if (!state.friends.some(f => f.id === res.friend.id)) {
+        state.friends = [res.friend, ...state.friends];
+        renderFriends(state.friends);
+      }
       setMsg(
         res.already ? `Vous suivez déjà « ${res.friend.username} ».`
                     : `« ${res.friend.username} » a été ajouté à vos amis.`,
         'ok'
       );
       input.value = '';
-      await refreshList();
+      // re-sync
+      listFriends()
+        .then(srv => { state.friends = srv; renderFriends(state.friends); })
+        .catch(() => {});
     } catch (e:any) {
       setMsg(e.message || 'Impossible d’ajouter cet ami.', 'err');
+    } finally {
+      btn.disabled = false;
     }
   });
-
-  // Chargement initial
-  try {
-    await refreshList();
-    setMsg('', 'info');
-  } catch (e:any) {
-    setMsg(e.message || 'Erreur de chargement. Êtes-vous connecté ?', 'err');
-  }
 }

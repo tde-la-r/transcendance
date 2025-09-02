@@ -11,7 +11,7 @@ function startGameServer(server) {
 	const TICK_MS = 1000 / 60;
 	const LEFT_PADDLE_X = -GAME_WIDTH / 2 + PADDLE_HEIGHT;
 	const RIGHT_PADDLE_X = GAME_WIDTH / 2 - PADDLE_HEIGHT;
-	const BALL_RADIUS = 5;
+	const BALL_RADIUS = 10;
 
 	// ---- Game State ----
 	const state = createInitialState();

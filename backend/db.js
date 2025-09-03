@@ -62,4 +62,32 @@ db.run(`
   }
 });
 
+function addColumnIfMissing(table, column, definition) {
+  return new Promise((resolve, reject) => {
+    db.all(`PRAGMA table_info(${table});`, [], (err, rows) => {
+      if (err) return reject(err);
+      const exists = rows.some(r => r.name === column);
+      if (exists) return resolve(false);
+      db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition};`, [], (e) => {
+        if (e) return reject(e);
+        resolve(true);
+      });
+    });
+  });
+}
+
+async function migrate2FA() {
+  try {
+    await addColumnIfMissing('users', 'twofa_enabled', 'INTEGER NOT NULL DEFAULT 0');
+    await addColumnIfMissing('users', 'twofa_type',    'TEXT');
+    await addColumnIfMissing('users', 'twofa_secret',  'TEXT');
+    console.log('[DB] 2FA columns ensured on users table.');
+  } catch (e) {
+    console.error('[DB] 2FA migration failed:', e.message);
+  }
+}
+
+// Appelle la migration après avoir ouvert la DB et créé les tables
+migrate2FA();
+
 module.exports = db;

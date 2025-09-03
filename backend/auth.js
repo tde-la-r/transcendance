@@ -223,7 +223,6 @@ async function authRoute(fastify, options) {
   });
 
 
-  // Qui suis-je ? (utilisé par le front)
   fastify.get('/me', async (req, reply) => {
     const raw = req.cookies?.session;
     if (!raw) return reply.code(401).send({ error: 'Not authenticated' });
@@ -245,8 +244,6 @@ async function authRoute(fastify, options) {
   });
 }
 
-
-// Helper local à auth.js : créer / associer un user
 async function upsertUserFromGoogle({ googleEmail, googleName, googleId, googleAvatar }) {
   // essaie par email
   let user = await dbGet('SELECT * FROM users WHERE email = ?', [googleEmail]);

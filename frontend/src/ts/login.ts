@@ -1,3 +1,5 @@
+import { initI18n, setLang } from "../i18n";
+
 export function mountLoginHandlers() {
   if (handleOAuthRedirectFromGoogle()) return;
   if (localStorage.getItem('auth')) {

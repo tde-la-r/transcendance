@@ -6269,7 +6269,7 @@
 │   │   │   └── sync.js
 │   │   ├── postcss-load-config
 │   │   │   ├── LICENSE
-│   │   │   ├── package.json
+│   │   │   ├── package.jsonfrontend
 │   │   │   ├── README.md
 │   │   │   └── src
 │   │   │       ├── index.d.ts
@@ -6309,7 +6309,7 @@
 │   │   │   │   │   ├── string.js
 │   │   │   │   │   ├── tag.js
 │   │   │   │   │   ├── types.js
-│   │   │   │   │   └── universal.js
+│   │   │   │   │   └── universal.jsfrontend
 │   │   │   │   ├── sortAscending.js
 │   │   │   │   ├── tokenize.js
 │   │   │   │   ├── tokenTypes.js
@@ -7769,9 +7769,14 @@
 │   │       ├── test.mp4
 │   │       └── test.png
 │   ├── save
-│   ├── server.ts
+│   ├── server.ts 
 │   ├── src
 │   │   ├── output.css
+│   │   ├── i18n.ts
+│   │   ├── i18n
+│   │   │   ├── en.json
+│   │   │   ├── es.json
+│   │   │   ├── fr.json
 │   │   ├── pages
 │   │   │   ├── dashboard.html
 │   │   │   ├── friends.html

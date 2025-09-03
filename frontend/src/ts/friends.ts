@@ -88,7 +88,7 @@ function renderFriends(items: Friend[]) {
   ul.innerHTML = '';
 
   if (!items.length) {
-    ul.innerHTML = `<li class="p-4 text-pink-200/80">Aucun ami pour l’instant.</li>`;
+    ul.innerHTML = `<li class="p-4 text-pink-200/80" data-i18n="friends.empty">Aucun ami pour l’instant.</li>`;
     return;
   }
 

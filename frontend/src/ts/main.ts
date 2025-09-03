@@ -15,6 +15,7 @@ import {
   isAuthed,
   setupLangDropdown,
 } from "./layout";
+import { applyTranslations } from '../i18n';
 
 function routeFromLocation(): string {
   const p = window.location.pathname || '/';

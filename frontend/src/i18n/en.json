@@ -1,0 +1,35 @@
+{
+	"login": {
+		"title": "Login",
+		"with_google": "Continue with google",
+		"username_or_email": "Usename or email",
+		"password": "Password",
+		"no_account": "don't have an account ?",
+		"submit": "Log in",
+		"register": "register"
+	},
+	"friends": {
+		"friends": "Friends",
+		"add": "Add",
+		"empty": "No friends yet.",
+		"enter_handle": "Enter Username or Alias.",
+		"added": "<{name}> has been added to your friends.",
+		"already": "You already follow <{name}>.",
+		"removed": "<{name}> removed from your friends.",
+		"friends_list": "Your friends list"
+	},
+	"nav": {
+		"home": "Home",
+		"play": "Play",
+		"dashboard": "Dashboard",
+		"friends": "Friends",
+		"profile": "Profile",
+		"logout": "Logout",
+		"lang": {
+			"label": "Language",
+			"fr": "Francais",
+			"en": "English",
+			"es": "Español"
+		}
+	}
+}

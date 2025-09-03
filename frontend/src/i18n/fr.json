@@ -1,0 +1,35 @@
+{
+	"login": {
+		"title": "Connexion",
+		"with_google": "Se connecter avec google",
+		"username_or_email": "Nom d'utilisateur ou email",
+		"password": "Mot de passe",
+		"no_account": "vous n'avez pas de compte ?",
+		"submit": "Se connecter",
+		"register": "S'inscrire"
+	},
+	"friends": {
+		"friends": "Amis",
+		"add": "Ajouter",
+		"empty": "Aucun amis pour l'instant.",
+		"enter_handle": "Entrez un pseudo ou un Alias.",
+		"added": "<{name}> a été ajouté à vos amis.",
+		"already": "Vous suivez déjà <{name}>.",
+		"removed": "<{name}> a été retiré de votre liste d'amis.",
+		"friends_list": "Votre liste d'amis"
+	},
+	"nav": {
+		"home": "Acceuil",
+		"play": "jouer",
+		"dashboard": "tableau de bord",
+		"friends": "amis",
+		"profile": "profil",
+		"logout": "déconnexion",
+		"lang": {
+			"label": "Langue",
+			"fr": "Francais",
+			"en": "English",
+			"es": "Español"
+		}
+	}
+}

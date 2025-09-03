@@ -39,6 +39,17 @@ document.addEventListener('click', (e) => {
   navigate(href);
 })
 
+async function waitFor(sel: string, tries = 10): Promise<boolean> {
+  return await new Promise((resolve) => {
+    const check = () => {
+      if (document.querySelector(sel)) return resolve(true);
+      if (tries-- <= 0) return resolve(false);
+      requestAnimationFrame(check);
+    };
+    check();
+  });
+}
+
 
 const protectedPages = new Set(['dashboard', 'play']);
 const authOnlyForbidden = new Set(['login', 'register']);
@@ -95,6 +106,15 @@ export async function loadPage() {
   } else {
     app?.removeAttribute('data-ssr');
   }
+  const keyElMap: Record<string, string>= {
+    friends: '#friendSearchForm',
+  };
+  const keyEl = keyElMap[key];
+  if (keyEl) {
+    await waitFor(keyEl);
+  }
+  await Promise.resolve();
+  await new Promise(requestAnimationFrame);
 
   try { def.mount?.(); } catch (e) { console.error('[mount]', key, e); }
   setupAuthMenu();

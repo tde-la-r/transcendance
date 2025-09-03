@@ -9,13 +9,31 @@ type Friend = {
 
 const API = 'http://localhost:3000';
 
-function $(sel: string): HTMLElement {
-  const el = document.querySelector(sel) as HTMLElement | null;
-  if (!el) throw new Error(`Element not found: ${sel}`);
-  return el;
+const state = {
+  friends: [] as Friend[],
 }
+
+async function waitEl<T extends HTMLElement = HTMLElement>(sel: string, tries = 10): Promise<T> {
+  let el = document.querySelector<T>(sel);
+  if (el) return el;
+  return await new Promise<T>((resolve, reject) => {
+    const check = () => {
+      el = document.querySelector<T>(sel);
+      if (el) return resolve(el);
+      if (tries-- <= 0) return reject(new Error(`Element not found after mount: ${sel}`));
+      requestAnimationFrame(check);
+    };
+    check();
+  });
+}
+
+function getEl<T extends HTMLElement = HTMLElement>(sel: string): T | null {
+  return document.querySelector<T>(sel);
+}
+
 function setMsg(txt: string, kind: 'info'|'ok'|'err'='info') {
-  const el = $('#friendsMsg');
+  const el = getEl<HTMLElement>('#friendsMsg');
+  if (!el) return;
   el.textContent = txt;
   el.classList.remove('text-pink-200','text-green-300','text-red-300');
   el.classList.add(
@@ -64,7 +82,9 @@ async function removeFriend(id: number) {
 }
 
 function renderFriends(items: Friend[]) {
-  const ul = $('#friendsList') as HTMLUListElement;
+  console.log('[friends] render', items.length);
+  const ul = getEl<HTMLUListElement>('#friendsList');
+  if (!ul) return;
   ul.innerHTML = '';
 
   if (!items.length) {
@@ -96,8 +116,10 @@ function renderFriends(items: Friend[]) {
     btn.addEventListener('click', async () => {
       try {
         await removeFriend(f.id);
-        await refreshList();
+        state.friends = state.friends.filter(x => x.id !== f.id);
+        renderFriends(state.friends);
         setMsg(`« ${f.username} » retiré de vos amis.`, 'ok');
+        listFriends().then(srv => { state.friends = srv; renderFriends(state.friends); }).catch(() => {});
       } catch (e:any) {
         setMsg(e.message || 'Erreur lors de la suppression.', 'err');
       }
@@ -110,13 +132,23 @@ function renderFriends(items: Friend[]) {
 
 async function refreshList() {
   const friends = await listFriends();
-  renderFriends(friends);
+  state.friends = friends;
+  renderFriends(state.friends);
 }
 
 export async function initFriendsPage() {
   // Sélecteurs
-  const form = $('#friendSearchForm') as HTMLFormElement;
-  const input = $('#friendsSearchInput') as HTMLInputElement;
+  console.log('[friends] initFriendsPage');
+  const form = await waitEl<HTMLFormElement>('#friendsSearchForm');
+  const input = await waitEl<HTMLFormElement>('#friendsSearchInput');
+  const btn = await waitEl<HTMLFormElement>('#friendsAddBtn');
+
+  try {
+    await refreshList();
+    setMsg('', 'info');
+  } catch (e:any) {
+    setMsg(e.message || 'Erreur de chargement. Êtes-vous connecté ?', 'err');
+  }
 
   // Submit "Ajouter"
   form.addEventListener('submit', async (ev) => {
@@ -127,24 +159,19 @@ export async function initFriendsPage() {
       return;
     }
     try {
+      btn.disabled = true;
       const res = await addFriend(handle);
+      await refreshList();
       setMsg(
         res.already ? `Vous suivez déjà « ${res.friend.username} ».`
                     : `« ${res.friend.username} » a été ajouté à vos amis.`,
         'ok'
       );
       input.value = '';
-      await refreshList();
     } catch (e:any) {
       setMsg(e.message || 'Impossible d’ajouter cet ami.', 'err');
+    } finally {
+      btn.disabled = false;
     }
   });
-
-  // Chargement initial
-  try {
-    await refreshList();
-    setMsg('', 'info');
-  } catch (e:any) {
-    setMsg(e.message || 'Erreur de chargement. Êtes-vous connecté ?', 'err');
-  }
 }

@@ -1,6 +1,7 @@
 export function mountLoginHandlers() {
+  if (handleOAuthRedirectFromGoogle()) return;
   if (localStorage.getItem('auth')) {
-    // déjà connecté -> pas de formulaire
+    // déjà connecté   pas de formulaire
     location.replace('#dashboard');
     return;
   }
@@ -9,6 +10,13 @@ export function mountLoginHandlers() {
   const msg = document.getElementById('loginMsg') as HTMLParagraphElement | null;
   const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
 
+  const googleBtn = document.getElementById('googleLoginBtn');
+  if (googleBtn) {
+      googleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = 'http://localhost:3000/api/auth/google';
+      });
+    }
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     btn && (btn.disabled = true);
@@ -38,7 +46,6 @@ export function mountLoginHandlers() {
         return;
       }
       localStorage.setItem('auth', JSON.stringify(body.user));
-      // NOUVEAU signale au layout que l’état a changé
       window.dispatchEvent(new CustomEvent('auth:changed'));
       msg && (msg.textContent = 'Connexion réussie !');
       setTimeout(() => { 
@@ -88,7 +95,7 @@ export function initLoginPage() {
     googleBtn.addEventListener('click', (e) => {
       e.preventDefault();
       // on navvigue on fetch opar pour preserver le state
-      window.location.href = 'http://localhost:300/api/auth/google';
+      window.location.href = 'http://localhost:3000/api/auth/google';
     });
   }
 

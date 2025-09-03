@@ -1,7 +1,14 @@
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+const MFA_COOKIE = 'mfa';                 // cookie court "pending 2FA"
+const SESSION_COOKIE = 'session';         // session existante
+const TOTP_KEY_B64 = process.env.TOTP_ENC_KEY_BASE64 || null;
+const MFA_EXPIRES = process.env.MFA_EXPIRES || '5m';
 const oauth2 = require('@fastify/oauth2');
 const bcrypt = require('bcrypt');
+const QRCode = require('qrcode');
+const { authenticator } = require('otplib');
+const crypto = require('node:crypto')
 const db = require('./db');
 
 function dbGet(sql, params = []) {
@@ -70,6 +77,42 @@ function validateEmail(email) {
   }
 
   return { ok: errors.length === 0, value: e, errors };
+}
+
+function encSecret(plain) {
+  if (!TOTP_KEY_B64) return plain; // pas de chiffrement si clé absente
+  const key = Buffer.from(TOTP_KEY_B64, 'base64');
+  const iv = crypto.randomBytes(12);
+  const c = crypto.createCipheriv('aes-256-gcm', key, iv);
+  const enc = Buffer.concat([c.update(String(plain), 'utf8'), c.final()]);
+  const tag = c.getAuthTag();
+  return Buffer.concat([iv, tag, enc]).toString('base64'); // [IV(12)][TAG(16)][DATA]
+}
+
+function decSecret(b64) {
+  if (!TOTP_KEY_B64) return b64;
+  const key = Buffer.from(TOTP_KEY_B64, 'base64');
+  const raw = Buffer.from(b64, 'base64');
+  const iv = raw.subarray(0, 12), tag = raw.subarray(12, 28), data = raw.subarray(28);
+  const d = crypto.createDecipheriv('aes-256-gcm', key, iv);
+  d.setAuthTag(tag);
+  return Buffer.concat([d.update(data), d.final()]).toString('utf8');
+}
+
+
+
+async function requireMe(req, reply) {
+  const raw = req.cookies?.[SESSION_COOKIE];
+  if (!raw) return reply.code(401).send({ error: 'Not authenticated' });
+  try {
+    const { uid } = jwt.verify(raw, JWT_SECRET);
+    // on veut aussi lire les colonnes 2FA :
+    const me = await dbGet('SELECT id, email, username, twofa_enabled, twofa_secret, twofa_type FROM users WHERE id = ?', [uid]);
+    if (!me) return reply.code(401).send({ error: 'Not authenticated' });
+    req.me = me;
+  } catch {
+    return reply.code(401).send({ error: 'Not authenticated' });
+  }
 }
 
 async function authRoute(fastify, options) {
@@ -152,16 +195,31 @@ async function authRoute(fastify, options) {
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return reply.code(400).send({ error: 'Wrong password.' });
 
-    // émettre une session
+    if (user.twofa_enabled) {
+      // ne PAS émettre la session — on passe en "MFA pending"
+      const mfaJwt = jwt.sign({ uid: user.id, mfa: true }, JWT_SECRET, { expiresIn: MFA_EXPIRES });
+      reply.setCookie(MFA_COOKIE, mfaJwt, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.COOKIE_SECURE === 'true',
+        path: '/',
+        maxAge: 60 * 5
+      });
+      return reply.send({ mfa_required: true });
+    }
     const token = jwt.sign({ uid: user.id }, JWT_SECRET, { expiresIn: '7d' });
-      reply.setCookie('session', token, {
+    reply.setCookie(SESSION_COOKIE, token, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: false, // true en prod derrière HTTPS
+      secure: false, // true en prod HTTPS
       path: '/',
       maxAge: 60 * 60 * 24 * 7
     });
-    return reply.send({ ok: true, message: 'Login successful', user: { id: user.id, username: user.username, email: user.email ?? user.Email } });
+    return reply.send({
+      ok: true,
+      message: 'Login successful',
+      user: { id: user.id, username: user.username, email: user.email ?? user.Email }
+    });
   });
 
   fastify.get('/google/callback', async (req, reply) => {
@@ -228,7 +286,7 @@ async function authRoute(fastify, options) {
     if (!raw) return reply.code(401).send({ error: 'Not authenticated' });
     try {
       const { uid } = jwt.verify(raw, JWT_SECRET);
-      const me = await dbGet('SELECT id, email, username, alias, avatar_url, wins, losses FROM users WHERE id = ?', [uid]);
+      const me = await dbGet('SELECT id, email, username, alias, avatar_url, wins, losses, twofa_enabled FROM users WHERE id = ?', [uid]);
       if (!me) return reply.code(401).send({ error: 'Not authenticated' });
       return reply.send({ ok: true, user: me });
     } catch {
@@ -240,6 +298,106 @@ async function authRoute(fastify, options) {
   // Logout
   fastify.post('/logout', async (req, reply) => {
     reply.clearCookie('session', { path: '/' });
+    reply.clearCookie(MFA_COOKIE, { path: '/' });
+    return reply.send({ ok: true });
+  });
+
+  fastify.get('/2fa/setup', { preHandler: requireMe }, async (req, reply) => {
+    const me = req.me;
+    const issuer = 'ft_transcendence';
+
+    // 1) générer un secret base32
+    const secret = authenticator.generateSecret();
+
+    // 2) otpauth URI pour applications TOTP (Google Authenticator, etc.)
+    //    Format: otpauth://totp/{issuer}:{account}?secret=...&issuer=...
+    const account = me.username; // tu peux mettre email si tu préfères
+    const otpauth = authenticator.keyuri(account, issuer, secret);
+
+    // 3) sauvegarde provisoire du secret (non activé)
+    //    (on garde twofa_type='totp' pour clarifier)
+    await dbRun(
+      `UPDATE users
+      SET twofa_type = ?, twofa_secret = ?, twofa_enabled = 0
+      WHERE id = ?`,
+      ['totp', encSecret(secret), me.id]
+    );
+
+    // 4) générer un QR en DataURL pour l'afficher côté front
+    const qr = await QRCode.toDataURL(otpauth);
+
+    return reply.send({
+      ok: true,
+      otpauth,
+      qr,                 // data:image/png;base64,...
+      manual_key: secret  // pratique si l’utilisateur préfère saisir à la main
+    });
+  });
+
+// --- 2FA: activer (vérifie un code)
+  fastify.post('/2fa/enable', { preHandler: requireMe }, async (req, reply) => {
+    const me = req.me;
+    const { code } = req.body || {};
+    if (!code) return reply.code(400).send({ error: 'Code is required' });
+
+    const row = await dbGet('SELECT twofa_secret FROM users WHERE id = ?', [me.id]);
+    if (!row?.twofa_secret) return reply.code(400).send({ error: '2FA setup required' });
+
+    const secret = decSecret(row.twofa_secret);
+
+    // window:1 tolère un léger décalage d’horloge (±1 intervalle)
+    const ok = authenticator.verify({ token: String(code), secret, window: 1 });
+    if (!ok) return reply.code(400).send({ error: 'Invalid code' });
+
+    await dbRun('UPDATE users SET twofa_enabled = 1 WHERE id = ?', [me.id]);
+    return reply.send({ ok: true });
+  });
+
+  // --- 2FA: désactiver (tu peux exiger mot de passe + TOTP selon ta politique)
+  fastify.post('/2fa/disable', { preHandler: requireMe }, async (req, reply) => {
+    const me = req.me;
+    await dbRun(
+      `UPDATE users
+      SET twofa_enabled = 0
+      WHERE id = ?`,
+      [me.id]
+    );
+    return reply.send({ ok: true });
+  });
+  
+  fastify.post('/mfa/verify', async (req, reply) => {
+    const raw = req.cookies?.[MFA_COOKIE];
+    if (!raw) return reply.code(401).send({ error: 'MFA expired' });
+
+    let payload;
+    try { payload = jwt.verify(raw, JWT_SECRET); }
+    catch { return reply.code(401).send({ error: 'MFA invalid' }); }
+    if (!payload?.mfa || !payload?.uid) return reply.code(401).send({ error: 'MFA invalid' });
+
+    const { code } = req.body || {};
+    const user = await dbGet(
+      'SELECT id, username, email, twofa_enabled, twofa_secret FROM users WHERE id = ?',
+      [payload.uid]
+    );
+    if (!user?.twofa_enabled || !user.twofa_secret) {
+      return reply.code(400).send({ error: '2FA not enabled' });
+    }
+
+    const secret = decSecret(user.twofa_secret);
+    const ok = authenticator.verify({ token: String(code || ''), secret, window: 1 });
+    if (!ok) return reply.code(400).send({ error: 'Invalid code' });
+
+    // OK → émettre la vraie session et retirer le cookie MFA
+    const token = jwt.sign({ uid: user.id }, JWT_SECRET, { expiresIn: '7d' });
+    reply.setCookie(SESSION_COOKIE, token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false, // true en prod HTTPS
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7
+    });
+    reply.clearCookie(MFA_COOKIE, { path: '/' });
+
     return reply.send({ ok: true });
   });
 }

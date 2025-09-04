@@ -118,10 +118,10 @@ function setupLangDropdown() {
     });
 
   d.menu.querySelectorAll<HTMLElement>('[data-lang]').forEach(el => {
-    el.addEventListener('click', async (ev) => {
-      const code = (ev.currentTarget as HTMLElement).getAttribute('data-lang')!;
+    el.addEventListener('click', async () => {
+      const code = el.getAttribute('data-lang')!;
       await setLang(code);
-      const label = (ev.currentTarget as HTMLElement).textContent?.trim();
+      const label = el.textContent?.trim();
       d.btn?.querySelector('[data-current-lang]')?.replaceChildren(document.createTextNode(label || code.toUpperCase()));
       closeAll();
     });

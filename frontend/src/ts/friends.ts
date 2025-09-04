@@ -1,3 +1,6 @@
+import { t, applyTranslations, setLang} from "../i18n";
+import { makeSetMsg } from "./utils";
+
 type Friend = {
   id: number;
   username: string;
@@ -31,15 +34,7 @@ function getEl<T extends HTMLElement = HTMLElement>(sel: string): T | null {
   return document.querySelector<T>(sel);
 }
 
-function setMsg(txt: string, kind: 'info'|'ok'|'err'='info') {
-  const el = getEl<HTMLElement>('#friendsMsg');
-  if (!el) return;
-  el.textContent = txt;
-  el.classList.remove('text-pink-200','text-green-300','text-red-300');
-  el.classList.add(
-    kind === 'ok' ? 'text-green-300' : kind === 'err' ? 'text-red-300' : 'text-pink-200'
-  );
-}
+const setMsg = makeSetMsg('#friendsMsg');
 
 async function listFriends(): Promise<Friend[]> {
   const res = await fetch(`${API}/api/me/friends?limit=50&offset=0`, {
@@ -47,7 +42,7 @@ async function listFriends(): Promise<Friend[]> {
   });
   if (!res.ok) {
     if (res.status === 401) throw new Error('Vous devez être connecté.');
-    throw new Error('Impossible de charger la liste des amis.');
+    throw new Error(t('friends.load_error'));
   }
   const data = await res.json();
   return data.friends || [];
@@ -118,10 +113,10 @@ function renderFriends(items: Friend[]) {
         await removeFriend(f.id);
         state.friends = state.friends.filter(x => x.id !== f.id);
         renderFriends(state.friends);
-        setMsg(`« ${f.username} » retiré de vos amis.`, 'ok');
+        setMsg('friends.removed', 'ok', {name: f.username});
         listFriends().then(srv => { state.friends = srv; renderFriends(state.friends); }).catch(() => {});
       } catch (e:any) {
-        setMsg(e.message || 'Erreur lors de la suppression.', 'err');
+        setMsg(e.message || 'common.network_error', 'err');
       }
     });
 
@@ -147,7 +142,7 @@ export async function initFriendsPage() {
     await refreshList();
     setMsg('', 'info');
   } catch (e:any) {
-    setMsg(e.message || 'Erreur de chargement. Êtes-vous connecté ?', 'err');
+    setMsg(e.message || 'friends.load_error', 'err');
   }
 
   // Submit "Ajouter"
@@ -155,7 +150,7 @@ export async function initFriendsPage() {
     ev.preventDefault();
     const handle = input.value.trim();
     if (!handle) {
-      setMsg('Entrez un pseudo ou un alias.', 'info');
+      setMsg('friends.enter_handle', 'info');
       return;
     }
     try {
@@ -163,13 +158,13 @@ export async function initFriendsPage() {
       const res = await addFriend(handle);
       await refreshList();
       setMsg(
-        res.already ? `Vous suivez déjà « ${res.friend.username} ».`
-                    : `« ${res.friend.username} » a été ajouté à vos amis.`,
-        'ok'
+        res.already ? 'friends.already' : 'friends.added',
+        'ok',
+        { name: res.friend.username }
       );
       input.value = '';
     } catch (e:any) {
-      setMsg(e.message || 'Impossible d’ajouter cet ami.', 'err');
+      setMsg(e.message || 'common.network_error', 'err');
     } finally {
       btn.disabled = false;
     }

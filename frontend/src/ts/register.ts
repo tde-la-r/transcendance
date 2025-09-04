@@ -1,3 +1,6 @@
+import {t} from "../i18n";
+import { makeSetMsg } from "./utils";
+
 export function mountRegisterHandlers() {
   const form = document.getElementById('registerForm') as HTMLFormElement | null;
   const msg = document.getElementById('registerMsg') as HTMLParagraphElement | null;
@@ -6,7 +9,8 @@ export function mountRegisterHandlers() {
   if (form.dataset.bound === '1') return;
   form.dataset.bound = '1';
   const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
-  const setMsg = (t: string) => {if (msg) msg.textContent = t; };
+
+  const setMsg = makeSetMsg('#registerMsg');
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -20,7 +24,7 @@ export function mountRegisterHandlers() {
     };
 
     if (!payload.email || !payload.username || !payload.password) {
-      setMsg('Tous les champs sont requis.');
+      setMsg('login.required_fields', 'err');
       submitBtn && (submitBtn.disabled = false);
       return;
     }
@@ -37,17 +41,17 @@ export function mountRegisterHandlers() {
         const msg = body?.error === 'Weak password' && Array.isArray(body?.details)
           ? body.details.join(' ')
           : (body?.error || `Erreur ${res.status}`);
-        setMsg(msg);
+        setMsg(msg, 'err');
         return;
     }
 
-      setMsg('Compte créé ! Redirection…');
+      setMsg('register.succes', 'ok');
       setTimeout(() => {
         history.pushState({}, '', '/login');
         window.dispatchEvent(new PopStateEvent('popstate'));
       }, 700);
     } catch (err: any) {
-      setMsg(err?.message || 'Erreur réseau');
+      setMsg(err?.message || 'common.network_error', 'err');
     } finally {
       submitBtn && (submitBtn.disabled = false);
     }

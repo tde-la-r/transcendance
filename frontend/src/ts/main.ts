@@ -15,7 +15,7 @@ import {
   isAuthed,
   setupLangDropdown,
 } from "./layout";
-import { applyTranslations } from '../i18n';
+import { applyTranslations, setLang, initI18n } from '../i18n';
 
 function routeFromLocation(): string {
   const p = window.location.pathname || '/';
@@ -103,9 +103,13 @@ export async function loadPage() {
         <p>Impossible de charger <code>${def.file}</code>.</p>
       </section>`;
     }
-    if (app) app.innerHTML = html;
+    if (app) {
+      app.innerHTML = html;
+      applyTranslations(app);
+    }
   } else {
     app?.removeAttribute('data-ssr');
+    if (app) applyTranslations(app);
   }
   const keyElMap: Record<string, string>= {
     friends: '#friendSearchForm',
@@ -136,10 +140,13 @@ document.addEventListener('click', (e) => {
 window.addEventListener('popstate', () => {
   setupAuthMenu();
   loadPage();
+  const app = document.getElementById("app")!;
+  applyTranslations(app);
 })
 
 window.addEventListener('DOMContentLoaded', async () => {
   await loadLayout();
+  await initI18n();
   setupLangDropdown();
   await loadPage();
 });

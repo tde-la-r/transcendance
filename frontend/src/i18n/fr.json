@@ -6,7 +6,13 @@
 		"password": "Mot de passe",
 		"no_account": "vous n'avez pas de compte ?",
 		"submit": "Se connecter",
-		"register": "S'inscrire"
+		"register": "S'inscrire",
+		"required_fields" : "Champs requis.",
+		"succes": "Connecté !"
+	},
+	"register": {
+		"register": "Inscription",
+		"succes": "Compte créé !"
 	},
 	"friends": {
 		"friends": "Amis",
@@ -16,7 +22,8 @@
 		"added": "<{name}> a été ajouté à vos amis.",
 		"already": "Vous suivez déjà <{name}>.",
 		"removed": "<{name}> a été retiré de votre liste d'amis.",
-		"friends_list": "Votre liste d'amis"
+		"friends_list": "Votre liste d'amis",
+		"load_error": "Impossible de charger la liste des amis."
 	},
 	"nav": {
 		"home": "Acceuil",
@@ -31,5 +38,8 @@
 			"en": "English",
 			"es": "Español"
 		}
+	},
+	"common" : {
+		"network_error": "Problème réseau. Vérifiez votre connexion."
 	}
 }

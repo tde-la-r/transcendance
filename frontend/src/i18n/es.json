@@ -6,7 +6,13 @@
 		"password": "Contraseña",
 		"no_account": "¿No tienes una cuenta?",
 		"submit": "Acceso",
-		"register": "registro"
+		"register": "registro",
+		"required_fields" : "Campos obligatorios.",
+		"succes": "¡Conectado!"
+	},
+	"register": {
+		"register": "Registro",
+		"succes": "¡Cuenta creada!"
 	},
 	"friends": {
 		"friends": "Amigos",
@@ -16,7 +22,8 @@
 		"added": "<{name}> Se ha añadido a tus amigos.",
 		"already": "ya sigues <{name}>.",
 		"removed": "<{name}> eliminado de tus amigos.",
-		"friends_list": "tu lista de amigos"
+		"friends_list": "tu lista de amigos",
+		"load_error": "No se puede cargar la lista de amigos."
 	},
 	"nav": {
 		"home": "Hogar",
@@ -31,5 +38,8 @@
 			"en": "English",
 			"es": "Español"
 		}
+	},
+	"common" : {
+		"network_error": "Error de red. Revisa tu conexión."
 	}
 }

@@ -6,7 +6,13 @@
 		"password": "Password",
 		"no_account": "don't have an account ?",
 		"submit": "Log in",
-		"register": "register"
+		"register": "register",
+		"required_fields" : "Required fields",
+		"succes": "Signed in!"
+	},
+	"register": {
+		"register": "Register",
+		"succes": "Account created!"
 	},
 	"friends": {
 		"friends": "Friends",
@@ -16,7 +22,8 @@
 		"added": "<{name}> has been added to your friends.",
 		"already": "You already follow <{name}>.",
 		"removed": "<{name}> removed from your friends.",
-		"friends_list": "Your friends list"
+		"friends_list": "Your friends list",
+		"load_error": "Unable to load friends list."
 	},
 	"nav": {
 		"home": "Home",
@@ -31,5 +38,8 @@
 			"en": "English",
 			"es": "Español"
 		}
+	},
+	"common" : {
+		"network_error": "Network error. Check your connection."
 	}
 }

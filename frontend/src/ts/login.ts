@@ -1,4 +1,5 @@
-import { initI18n, setLang } from "../i18n";
+import { makeSetMsg } from "./utils";
+import { initI18n, setLang, applyTranslations } from "../i18n";
 
 export function mountLoginHandlers() {
   if (handleOAuthRedirectFromGoogle()) return;
@@ -9,7 +10,7 @@ export function mountLoginHandlers() {
   }
   const form = document.getElementById('loginForm') as HTMLFormElement | null;
   if (!form) return;
-  const msg = document.getElementById('loginMsg') as HTMLParagraphElement | null;
+  const setMsg = makeSetMsg('#loginMsg');
   const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
 
   const googleBtn = document.getElementById('googleLoginBtn');
@@ -30,7 +31,7 @@ export function mountLoginHandlers() {
     };
 
     if (!payload.username || !payload.password) {
-      msg && (msg.textContent = 'Champs requis.');
+      setMsg('login.required_fields', 'err');
       btn && (btn.disabled = false);
       return;
     }
@@ -43,19 +44,19 @@ export function mountLoginHandlers() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok || !body.ok) {
-        msg && (msg.textContent = body.error || `Erreur ${res.status}`);
+        setMsg(body?.error || `Erreur ${res.status}`, 'err');
         btn && (btn.disabled = false);
         return;
       }
       localStorage.setItem('auth', JSON.stringify(body.user));
       window.dispatchEvent(new CustomEvent('auth:changed'));
-      msg && (msg.textContent = 'Connexion réussie !');
+      setMsg('login.succes', 'ok');
       setTimeout(() => { 
         history.pushState({}, '', '/dashboard');
         window.dispatchEvent(new PopStateEvent('popstate'));
       }, 600);
     } catch (err: any) {
-      msg && (msg.textContent = err?.message || 'Erreur réseau');
+      setMsg(err?.message || 'common.network_error', 'err');
       btn && (btn.disabled = false);
     }
   }, { once: true });

@@ -1,4 +1,8 @@
 {
+	"home": {
+		"text": "Présentation d'un site web complet avec un magnifique design moderne",
+		"button": "Jouer maintenant"
+	},
 	"login": {
 		"title": "Connexion",
 		"with_google": "Se connecter avec google",
@@ -41,5 +45,19 @@
 	},
 	"common" : {
 		"network_error": "Problème réseau. Vérifiez votre connexion."
+	},
+	"profile": {
+		"saving": "Sauvegarde en cours...",
+		"saved": "Profil sauvegardé !",
+		"update_error": "Erreur lors de la mise à jour.",
+		"username_taken": "Ce nom d'utilisateur est déjà pris.",
+		"alias_taken": "Cet alias est déjà pris.",
+		"avatar" : {
+			"invalid_scheme" : "URL invalide : utilise https://",
+			"checking": "Vérification de l’image…",
+			"updated": "Avatar mis à jour.",
+			"fetch_error": "Impossible de charger l'image à cette URL.",
+			"invalid_url": "L'URL d'avatar n'est pas valide."
+		}
 	}
 }

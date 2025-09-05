@@ -1,4 +1,8 @@
 {
+	"home": {
+		"text": "Introducing a complete website with a beautiful modern design",
+		"button": "Play now"
+	},
 	"login": {
 		"title": "Login",
 		"with_google": "Continue with google",
@@ -41,5 +45,19 @@
 	},
 	"common" : {
 		"network_error": "Network error. Check your connection."
+	},
+	"profile": {
+		"saving": "Backup in progress...",
+		"saved": "Profile saved!",
+		"update_error": "Error while updating.",
+		"username_taken": "This username is already taken.",
+		"alias_taken": "This alias is already taken.",
+		"avatar" : {
+			"invalid_scheme" : "Invalid URL: Use https://",
+			"checking": "Checking the image…",
+			"updated": "Avatar updated.",
+			"fetch_error": "Unable to load image at this URL.",
+			"invalid_url": "The avatar URL is invalid."
+		}
 	}
 }

@@ -8,7 +8,6 @@ import {
 	Color3,
 	Color4,
 	FreeCamera,
-	UniversalCamera,
 	DynamicTexture,
 } from "@babylonjs/core";
 
@@ -19,10 +18,12 @@ export function initPongPage() {
 	const engine = new Engine(canvas, true);
 	const scene = new Scene(engine);
 	scene.clearColor = new Color4(0, 0, 0, 1);
-	new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+	const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
+	
+	light.intensity = 1.7;
 
 	const { leftPaddle, rightPaddle, ball, scoreTexture } = createGameObjects(scene);
-	const { mainCam, leftCam, rightCam } = createCameras(scene, leftPaddle, rightPaddle, canvas);
+	const { mainCam, secondCam } = createCameras(scene);
 
 	// ---- WebSocket ----
 	const ws = new WebSocket("ws://localhost:3000/ws");
@@ -39,7 +40,7 @@ export function initPongPage() {
 		}
 	};
 
-	setupControls(ws, scene, canvas, leftCam, rightCam, mainCam);
+	setupControls(ws, scene, mainCam, secondCam);
 
 	engine.runRenderLoop(() => scene.render());
 }
@@ -56,12 +57,12 @@ function createGameObjects(scene: Scene) {
 	const ballMat = new StandardMaterial("ballMat", scene);
 	ballMat.diffuseColor = Color3.White();
 
-	const leftPaddle = MeshBuilder.CreateBox("leftPaddle", { width: PADDLE_LENGTH, height: PADDLE_HEIGHT, depth: 1 }, scene);
+	const leftPaddle = MeshBuilder.CreateBox("leftPaddle", { width: PADDLE_LENGTH, height: PADDLE_HEIGHT, depth: 10 }, scene);
 	leftPaddle.material = paddleMat;
 	leftPaddle.position.x = -400 + PADDLE_HEIGHT;
 	leftPaddle.rotation.z = Math.PI / 2;
 
-	const rightPaddle = MeshBuilder.CreateBox("rightPaddle", { width: PADDLE_LENGTH, height: PADDLE_HEIGHT, depth: 1 }, scene);
+	const rightPaddle = MeshBuilder.CreateBox("rightPaddle", { width: PADDLE_LENGTH, height: PADDLE_HEIGHT, depth: 10 }, scene);
 	rightPaddle.material = paddleMat;
 	rightPaddle.position.x = 400 - PADDLE_HEIGHT;
 	rightPaddle.rotation.z = Math.PI / 2;
@@ -77,59 +78,66 @@ function createGameObjects(scene: Scene) {
 
 // ---- Midle Line ----
 function createMiddleLine(scene: Scene, gameHeight: number, segmentHeight = 10, gap = 10) {
+	const GAME_WIDTH = 800;
+	const GAME_HEIGHT = 400;
+
 	const lineMaterial = new StandardMaterial("lineMat", scene);
 	lineMaterial.diffuseColor = Color3.White();
 	const segments = Math.floor(gameHeight / (segmentHeight + gap));
 	for (let i = 0; i < segments; i++) {
-		const segment = MeshBuilder.CreateBox(`lineSeg${i}`, { width: 2, height: segmentHeight, depth: 1 }, scene);
+		const segment = MeshBuilder.CreateBox(`lineSeg${i}`, { width: 2, height: segmentHeight, depth: -1 }, scene);
 		segment.material = lineMaterial;
 		segment.position.x = 0;
 		segment.position.y = gameHeight / 2 - (i + 0.5) * (segmentHeight + gap);
 	}
+
+	const up = MeshBuilder.CreateBox("horizontal up", { width: GAME_WIDTH, height: 1, depth: -1 }, scene);
+	const down = MeshBuilder.CreateBox("horizontal down", { width: GAME_WIDTH, height: 1, depth: -1 }, scene);
+	const right = MeshBuilder.CreateBox("vertical right", { width: 1, height: GAME_HEIGHT, depth: -1 }, scene);
+	const left = MeshBuilder.CreateBox("vertical left", { width: 1, height: GAME_HEIGHT, depth: -1 }, scene);
+
+	up.position.x = 0;
+	up.position.y = GAME_HEIGHT / 2;
+	down.position.x = 0;
+	down.position.y = -(GAME_HEIGHT / 2);
+
+	right.position.x = GAME_WIDTH / 2;
+	right.position.y = 0;
+	left.position.x = -(GAME_WIDTH / 2);
+	left.position.y = 0;
 }
 
 // ---- Cameras ----
-function createCameras(scene: Scene, leftPaddle: any, rightPaddle: any, canvas: HTMLCanvasElement) {
+function createCameras(scene: Scene) {
 	const mainCam = new FreeCamera("mainCam", new Vector3(0, 0, -1000), scene);
+	const secondCam = new FreeCamera("secondCam", new Vector3(0, -300, -500), scene);
+
+	secondCam.setTarget(Vector3.Zero());
+	secondCam.fov = 0.9;
+
 	mainCam.mode = 1;
 	mainCam.setTarget(Vector3.Zero());
 	scene.activeCamera = mainCam;
-	mainCam.attachControl(canvas, true);
 
-	const leftCam = new UniversalCamera("leftCam", new Vector3(), scene);
-	const rightCam = new UniversalCamera("rightCam", new Vector3(), scene);
-
-	scene.onBeforeRenderObservable.add(() => {
-		updateCamera(leftCam, leftPaddle, new Vector3(leftPaddle.position.x + 400, leftPaddle.position.y, 0));
-		updateCamera(rightCam, rightPaddle, new Vector3(rightPaddle.position.x - 400, rightPaddle.position.y, 0));
-	});
-
-	return { mainCam, leftCam, rightCam };
-}
-
-function updateCamera(cam: UniversalCamera, paddle: any, target: Vector3) {
-	cam.position.x = paddle.position.x - 30;
-	cam.position.y = paddle.position.y;
-	cam.position.z = -20;
-	cam.fov = 0.4;
-	paddle.position.z = 0;
-	cam.setTarget(target);
+	return { mainCam, secondCam };
 }
 
 // ---- Controles ----
 function setupControls(
 	ws: WebSocket,
 	scene: Scene,
-	canvas: HTMLCanvasElement,
-	leftCam: UniversalCamera,
-	rightCam: UniversalCamera,
-	mainCam: FreeCamera
+	mainCam: FreeCamera,
+	secondCam: FreeCamera
 ) {
 	const keysToLock = ["w", "s", "ArrowUp", "ArrowDown"];
 
 	document.addEventListener("keydown", (e) => {
 		if (keysToLock.includes(e.key)) e.preventDefault(); // deny scroll page
 
+		if ("1".includes(e.key))
+			scene.activeCamera = mainCam;
+		if ("2".includes(e.key))
+			scene.activeCamera = secondCam;
 		if (["w", "s"].includes(e.key))
 			ws.send(JSON.stringify({ type: "move", side: "left", dir: e.key === "w" ? "up" : "down" }));
 		if (["ArrowUp", "ArrowDown"].includes(e.key))

@@ -23,7 +23,7 @@ function startGameServer(server) {
 	// ---- Init WebSocket ----
 	setupWebSocket(wss, state);
 
-	// ---- Ga;e loop ----
+	// ---- Game loop ----
 	setInterval(() => gameLoop(state, wss), TICK_MS);
 
 	/* ========================== //
